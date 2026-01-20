@@ -5,3 +5,4 @@ dotenv==0.9.9
 termcolor==3.1.0
 dropbox==12.0.2
 openpyxl==3.1.5
+openpyxl_image_loader==1.0.5
