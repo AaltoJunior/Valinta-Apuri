@@ -4,4 +4,4 @@ numpy==2.3.0
 dotenv==0.9.9
 termcolor==3.1.0
 dropbox==12.0.2
-openppyxl==3.1.5
+openpyxl==3.1.5
