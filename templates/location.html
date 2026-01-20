@@ -1,0 +1,16 @@
+<div class="options">
+    <h1>Opintokäynti:</h1>
+    <div class="row-container">
+    {% for loc in locations %}
+        <div class="row-element">
+        {% if loc in selected_locations %}
+            <input type="checkbox" name="{{ loc }}" id="{{ loc }}" value="True" checked>
+            <label for="{{ loc }}">{{ loc }}</label><br>
+        {% else %}
+            <input type="checkbox" name="{{ loc }}" id="{{ loc }}" value="True">
+            <label for="{{ loc }}">{{ loc }}</label><br>
+        {% endif %}
+        </div>
+    {% endfor %}
+    </div>
+</div>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="language" content="fi">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <title>Aalto-yliopisto Juniorin opintokäyntien valinta apuri</title>
+
+
+</head>
+<body>
+<div>
+
+   
+    <div>
+        <form action="" class="form">
+            <!-- {% if selected_levels %}
+                {% include 'aste.html' %}
+            {% if selected_days %}
+                {% include 'paiva.html' %}
+            {% if selected_categories %}
+                {% include 'kategoria.html' %}
+            {% else %}
+                {% include 'kategoria-empty.html' %}
+            {% endif %}
+
+            {% else %}
+                {% include 'paiva-empty.html' %}
+            {% endif %}
+
+            {% else %}
+                {% include 'taso-empty.html' %}
+            {% endif %}-->
+
+            {% if selected_categories %}
+                {% include 'kategoria.html' %}
+            {% if selected_levels %}
+                {% include 'aste.html' %}
+            {% if selected_days %}
+                {% include 'paiva.html' %}
+                {% include 'location.html' %}
+            {% else %}
+                {% include 'paiva-empty.html' %}
+            {% endif %}
+
+            {% else %}
+                {% include 'taso-empty.html' %}
+            {% endif %}
+
+            {% else %}
+                {% include 'kategoria-empty.html' %}
+            {% endif %}
+            <div class="submit-container">
+                <input id="submit" type="submit" value="➔" />
+            </div>
+        </form>
+        <!-- <div>
+            <p>Criteria: 
+            {{ selected_levels }}
+            {{ selected_days }}
+            {{ selected_categories }}
+            </p>
+        </div> -->
+
+
+        <div class="korttipakka">
+            {% for i in rowItems %}
+                {% include 'kortti.html' %}
+            {% endfor %}
+        </div>
+
+
+        <!--<div>
+            {{ df | safe }}
+        </div>-->
+
+    </div>
+</div>
+
+</body>
+</html>

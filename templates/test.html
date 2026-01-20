@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>title</title>
+</head>
+<body>
+    <form action="">
+        <div>
+                {% for i in range(10) %}
+                    <input type="checkbox" id="lvl{{ i }}" name="lvl{{ i }}" value="True" {% if i in selected_levels %}checked{% endif %}>
+                    <label for="lvl{{ i }}"> Lvl {{ i }}</label><br>
+                {% endfor %}
+        </div>
+        <div>
+            {% for i in ["Ma","Ti","Ke","To","Pe"] %}
+                <input type="checkbox" name="{{ i }}" id="{{ i }}" value="True">
+                <label for="{{ i }}"> {{ i }}</label><br>
+            {% endfor %}
+        </div>
+        <input type="submit" value="Submit" />
+    </form>
+</body>
+</html>

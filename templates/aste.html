@@ -1,0 +1,41 @@
+<div class="options">
+        <h1>Luokka-aste:</h1>
+        <div class="row-container">
+        {# Grouped level checkboxes: values are comma-separated lists of individual levels #}
+        {% set level_groups = [
+                {'label':'1-2','vals':[1,2]},
+                {'label':'3-4','vals':[3,4]},
+                {'label':'5-6','vals':[5,6]},
+                {'label':'7-9','vals':[7,8,9]},
+                {'label':'2. Aste','vals':[10]}
+        ] %}
+
+        {% for g in level_groups %}
+            {# compute group value string and read raw groups from request args if available #}
+            {% set grp_val = g.vals | join(',') %}
+            {% set raw_groups = [] %}
+            {% if args is defined %}
+                {% set raw_groups = args.getlist('lvl_group') %}
+            {% endif %}
+
+            {% set checked = false %}
+            {# First, prefer raw request values (handles encoding and preserves user's selection) #}
+            {% if raw_groups and grp_val in raw_groups %}
+                {% set checked = true %}
+            {% else %}
+                {# Fallback: check parsed selected_levels (handles ints and numeric strings) #}
+                {% for v in g.vals %}
+                    {% if v in selected_levels or (v|string) in selected_levels %}
+                        {% set checked = true %}
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+
+            <div class="row-element">
+                <input type="checkbox" name="lvl_group" id="grp_{{ loop.index }}" value="{{ grp_val }}" {% if checked %}checked{% endif %}>
+                <label for="grp_{{ loop.index }}"> {{ g.label }}</label><br>
+            </div>
+        {% endfor %}
+
+        </div>
+</div>

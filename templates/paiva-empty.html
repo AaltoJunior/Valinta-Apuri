@@ -1,0 +1,11 @@
+<div class="options">
+    <h1>Päivä:</h1>
+    <div class="row-container">
+        {% for i in ["Ma","Ti","Ke","To","Pe"] %}
+            <div class="row-element">
+            <input type="checkbox" name="{{ i }}" id="{{ i }}" value="True">
+            <label for="{{ i }}"> {{ i }}</label><br>
+            </div>
+        {% endfor %}
+    </div>
+</div>

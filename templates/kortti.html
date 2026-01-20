@@ -1,0 +1,36 @@
+<div class="kortti">
+    <h2>{{ i[1] }}</h2> <!-- -->
+    <img src="{{ url_for('static', filename='img_tmp/' ~ i[0] ~ '.png') }}" class="kortti-img">
+    <p>{{ i[2] }}</p>
+    <div class="row">
+        <p>Päivät:</p>
+        {% for x in i[3] %}
+                <p class="päivä">{{ x }}</p>
+        {% endfor %}
+    </div>
+
+
+    <div class="row">
+        <p>Opintokäynti:</p>
+        <p class="loc {{ i[6] }}">{{ i[6] }}</p>
+    </div>
+
+    <div class="row">
+        <p>Luokka:</p>
+        {% for x in i[4] %}
+
+        {% if x == 10 %}
+            <p class="taso">2. Aste</p>
+        {% else %}
+            <p class="taso">{{ x }}</p>
+        {% endif %}
+            
+        {% endfor %}
+    </div>
+    <div class="row">
+        <p>Kategoria:</p>
+        {% for x in i[5] %}
+            <p class="kategoria">{{ x }}</p>
+        {% endfor %}
+    </div>
+</div>

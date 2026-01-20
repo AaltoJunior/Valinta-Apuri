@@ -1,0 +1,21 @@
+<div class="options">
+        <h1>Luokka-aste:</h1>
+        <div class="row-container">
+        {# Render grouped level checkboxes for empty state (unchecked) #}
+        {% set level_groups = [
+                {'label':'1-2','vals':[1,2]},
+                {'label':'3-4','vals':[3,4]},
+                {'label':'5-6','vals':[5,6]},
+                {'label':'7-9','vals':[7,8,9]},
+                {'label':'2. Aste','vals':[10]}
+        ] %}
+
+        {% for g in level_groups %}
+            <div class="row-element">
+                <input type="checkbox" name="lvl_group" id="grp_{{ loop.index }}" value="{{ g.vals | join(',') }}">
+                <label for="grp_{{ loop.index }}"> {{ g.label }}</label><br>
+            </div>
+        {% endfor %}
+
+        </div>
+</div>

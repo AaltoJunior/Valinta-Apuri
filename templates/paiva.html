@@ -1,0 +1,16 @@
+<div class="options">
+    <h1>Päivä:</h1>
+    <div class="row-container">
+    {% for i in ["Ma","Ti","Ke","To","Pe"] %}
+        <div class="row-element">
+        {% if i in selected_days %}
+        <input type="checkbox" name="{{ i }}" id="{{ i }}" value="True" checked>
+        <label for="{{ i }}"> {{ i }}</label><br>
+        {% else %}
+        <input type="checkbox" name="{{ i }}" id="{{ i }}" value="True">
+        <label for="{{ i }}"> {{ i }}</label><br>
+        {% endif %}
+        </div>
+    {% endfor %}
+    </div>
+</div>

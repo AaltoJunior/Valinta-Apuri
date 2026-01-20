@@ -1,0 +1,16 @@
+<div class="options">
+    <h1>Oppiaine:</h1>
+    <div class="row-container">
+    {% for cat in categories %}
+        <div class="row-element">
+        {% if cat in selected_categories %}
+            <input type="checkbox" name="{{ cat }}" id="{{ cat }}" value="True" checked>
+            <label for="{{ cat }}"> {{ cat }}</label><br>
+        {% else %}
+            <input type="checkbox" name="{{ cat }}" id="{{ cat }}" value="True">
+            <label for="{{ cat }}"> {{ cat }}</label><br>
+        {% endif %}
+        </div>
+    {% endfor %}
+    </div>
+</div>
