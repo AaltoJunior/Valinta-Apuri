@@ -1,3 +1,4 @@
 .DS_store
 *.env
 *.log
+static/img_tmp/*
