@@ -40,8 +40,8 @@ def initialize_dropbox_interactive():
     print("3. Copy the authorization code.")
     # auth_code = input("Enter the authorization code here: ").strip()
     
-    print("Waiting 5 minutes to allow user to get the code...")
-    sleep(300) # Wait for 5 minutes to allow user to get the code
+    print("Waiting 2 minutes to allow user to get the code...")
+    sleep(120) # Wait for 5 minutes to allow user to get the code
     
     print("Reading authorization code from environment variable DP_AUTH_CODE")
     
