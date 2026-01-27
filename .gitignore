@@ -1,3 +1,6 @@
 .DS_store
 *.env
 *.log
+static/img_tmp/*
+!static/img_tmp/.gitkeep
+__pycache__/
