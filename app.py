@@ -216,6 +216,7 @@ time.sleep(5) # Wait a bit before loading images to ensure the first download is
 
 # Load initial data
 df, categories = load_and_process_excel()
+load_img_from_excel()
 
 app = Flask(__name__)
 
