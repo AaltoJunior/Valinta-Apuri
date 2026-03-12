@@ -10,9 +10,13 @@ import hashlib
 import hmac
 from termcolor import colored
 
-import dropbox
-from dropbox import DropboxOAuth2FlowNoRedirect
 
+import msal
+import requests
+import time
+from datetime import datetime
+
+import threading
 
 import os
 import shutil
@@ -22,60 +26,93 @@ from openpyxl_image_loader import SheetImageLoader
 from time import sleep
 
 load_dotenv()
-DP_ALLOW_NEW_WEBHOOKS = os.getenv("DP_ALLOW_NEW_WEBHOOKS")
-APP_SECRET = os.getenv("DP_secret")
-APP_KEY = os.getenv("DP_key")
-# DP_access_token = os.getenv("DP_access_token")
 
-dbx = None
-oauth_result = None
+CLIENT_ID = os.getenv("CLIENT_ID")
+CLIENT_SECRET = os.getenv("CLIENT_SECRET")
+TENANT_ID = os.getenv("TENANT_ID")
+DRIVE_ID = os.getenv("DRIVE_ID")    
 
-def initialize_dropbox_interactive():
-    global dbx, oauth_result
-    auth_flow = DropboxOAuth2FlowNoRedirect(APP_KEY, use_pkce=True, token_access_type='offline')
+FILE_PATH = "Valinta-apuri/data.xlsx"
+OUTPUT_FILE = "dp/d.xlsx"
+POLL_INTERVAL_SECONDS = 300
 
-    authorize_url = auth_flow.start()
-    print("1. Go to: \n" + authorize_url)
-    print("2. Click \"Allow\" (you might have to log in first).")
-    print("3. Copy the authorization code.")
-    # auth_code = input("Enter the authorization code here: ").strip()
-    
-    print("Waiting 2 minutes to allow user to get the code...")
-    sleep(120) # Wait for 5 minutes to allow user to get the code
-    
-    print("Reading authorization code from environment variable DP_AUTH_CODE")
-    
-    load_dotenv(override=True)
-    auth_code = os.getenv("DP_AUTH_CODE").strip()
-    # print(f"Using auth_code: {auth_code}")
+AUTHORITY = f"https://login.microsoftonline.com/{TENANT_ID}"
 
-    try:
-        oauth_result = auth_flow.finish(auth_code)
-    except Exception as e:
-        print('Error: %s' % (e,))
-        exit(1)
-        
+# --------- MSAL CLIENT ---------
+msal_app = msal.ConfidentialClientApplication(
+    client_id=CLIENT_ID,
+    client_credential=CLIENT_SECRET,
+    authority=AUTHORITY
+)
 
-    dbx = dropbox.Dropbox(oauth2_refresh_token=oauth_result.refresh_token, app_key=APP_KEY)
-    dbx.users_get_current_account()
+def get_token():
+    return msal_app.acquire_token_for_client(
+        scopes=["https://graph.microsoft.com/.default"]
+    ).get("access_token")
 
-def dropbox_content_hash(file_path):
-    """Calculate the Dropbox content hash for a local file."""
-    CHUNK_SIZE = 4 * 1024 * 1024  # 4MB chunks
+def download_file():
+    headers = {"Authorization": f"Bearer {get_token()}"}
+    r = requests.get(
+        f"https://graph.microsoft.com/v1.0/drives/{DRIVE_ID}/root:/{FILE_PATH}",
+        headers=headers
+    )
+    if r.status_code != 200:
+        print(f"❌ Get file failed: {r.status_code}")
+        return
+    download_url = r.json()["@microsoft.graph.downloadUrl"]
+    r = requests.get(download_url)
+    if r.status_code == 200:
+        with open(OUTPUT_FILE, "wb") as f:
+            f.write(r.content)
+        print(f"✅ Downloaded '{OUTPUT_FILE}' ({len(r.content):,} bytes)")
+
+def get_last_modified():
+    headers = {"Authorization": f"Bearer {get_token()}"}
+    r = requests.get(
+        f"https://graph.microsoft.com/v1.0/drives/{DRIVE_ID}/root:/{FILE_PATH}",
+        headers=headers
+    )
+    if r.status_code != 200:
+        print(f"❌ Check failed: {r.status_code}")
+        return None
+    return r.json().get("lastModifiedDateTime")
+
+def get_file_hashes():
+    headers = {"Authorization": f"Bearer {get_token()}"}
+    r = requests.get(
+        f"https://graph.microsoft.com/v1.0/drives/{DRIVE_ID}/root:/{FILE_PATH}",
+        headers=headers
+    )
+    if r.status_code != 200:
+        print(f"❌ Check failed: {r.status_code}")
+        return None
     
-    chunk_hashes = []
-    
-    with open(file_path, 'rb') as f:
-        while True:
-            chunk = f.read(CHUNK_SIZE)
-            if not chunk:
-                break
-            chunk_hashes.append(hashlib.sha256(chunk).digest())
-    
-    if not chunk_hashes:
-        return hashlib.sha256(b'').hexdigest()
-    
-    return hashlib.sha256(b''.join(chunk_hashes)).hexdigest()
+    hashes = r.json().get("file", {}).get("hashes", {})
+    print(f"   quickXorHash : {hashes.get('quickXorHash')}")
+    print(f"   sha256Hash   : {hashes.get('sha256Hash')}")
+    return hashes.get("quickXorHash") or hashes.get("sha256Hash")
+
+
+def poller():
+    print("🚀 Starting poller (every 5 minutes)")
+
+    download_file()
+    last_hash = get_file_hashes()
+    print(f"📄 Initial hash: {last_hash}")
+
+    while True:
+        time.sleep(POLL_INTERVAL_SECONDS)
+        print(f"\n🔍 Checking hash... ({datetime.now().strftime('%H:%M:%S')})")
+
+        current_hash = get_file_hashes()
+
+        if current_hash and current_hash != last_hash:
+            print(f"🔔 Hash changed! Downloading...")
+            download_file()
+            last_hash = current_hash
+        else:
+            print(f"   No changes.")
+
 
 def strip_list(items):
     """Trim whitespace for each item and normalize capitalization.
@@ -132,32 +169,6 @@ def load_and_process_excel(file_path='dp/d.xlsx'):
     
     return df, categories
 
-def check_and_update_data():
-    """Check Dropbox for updates and reload data if the file has changed."""
-    dropbox_metadata = dbx.files_get_metadata('/d.xlsx')
-    print(f"Dropbox modified: {dropbox_metadata.server_modified}")
-    print(f"Dropbox content_hash: {dropbox_metadata.content_hash}")
-    local_file_path = 'dp/d.xlsx'
-    try:
-        local_hash = dropbox_content_hash(local_file_path)
-        print(f"Local file hash: {local_hash}")
-        
-        # Compare hashes
-        if local_hash == dropbox_metadata.content_hash:
-            print("✅ Files are identical!")
-        else:
-            print("❌ Files differ!")
-            print("Downloading the latest file from Dropbox...")
-            dbx.files_download_to_file('dp/d.xlsx', '/d.xlsx')
-            print("Download complete.")
-            
-            # Update global variables
-            global df, categories
-            df, categories = load_and_process_excel()
-            print("✅ Data reloaded successfully!")
-            load_img_from_excel()
-    except FileNotFoundError:
-        print(f"Local file '{local_file_path}' not found. Download it first.")
         
         
 def load_img_from_excel():
@@ -184,11 +195,12 @@ def load_img_from_excel():
     print("✅ Pictures reloaded successfully!")
     
 
+# Start the polling in a separate thread so it doesn't block the Flask app
+poller_thread = threading.Thread(target=poller, daemon=True)
+poller_thread.start()
 
+time.sleep(5) # Wait a bit before loading images to ensure the first download is complete
 
-initialize_dropbox_interactive()
-# Check for updates in data on startup
-check_and_update_data()
 
 # Load initial data
 df, categories = load_and_process_excel()
@@ -268,49 +280,7 @@ def test():
     # return render_template('test.html')
     
     
-@app.route('/webhook', methods=['GET'])
-def verify():
-    '''Respond to the webhook verification (GET request) by echoing back the challenge parameter.'''
-    if DP_ALLOW_NEW_WEBHOOKS:
-        resp = Response(request.args.get('challenge'))
-        resp.headers['Content-Type'] = 'text/plain'
-        resp.headers['X-Content-Type-Options'] = 'nosniff'
-        return resp
-    else:
-        return Response("New webhooks are not allowed", status=403)
 
-@app.route('/webhook', methods=['POST'])
-def webhook_post():
-    try:
-        print("=== Webhook POST Request ===")
-        print("Headers:", dict(request.headers))
-        print("JSON Data:", request.get_json())
-        print("Raw Data:", request.get_data(as_text=True))
-        
-        signature = request.headers.get('X-Dropbox-Signature')
-        print("X-Dropbox-Signature:", signature)
-        
-        if APP_SECRET is None:
-            print("ERROR: APP_SECRET is None!")
-            return Response("Configuration Error", status=500)
-            
-        if signature is None:
-            print("ERROR: X-Dropbox-Signature header missing!")
-            return Response("Missing Signature", status=400)
-        
-        x = hmac.compare_digest(signature, hmac.new(APP_SECRET.encode(), request.data, hashlib.sha256).hexdigest())
-        if x: 
-            print(colored("=== Signature valid! ===", "green"))
-            check_and_update_data()
-        else:
-            print(colored("ERROR: Invalid signature!", "red"))
-            return Response("Invalid Signature", status=403)
-
-        return Response("OK", status=200)
-        
-    except Exception as e:
-        print("ERROR:", str(e))
-        return Response(f"Error: {str(e)}", status=500)
     
 @app.errorhandler(404)
 def page_not_found(e):
@@ -323,4 +293,4 @@ def page_not_found(e):
     return render_template('404.html'), 404
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=80, debug=False)
+    app.run(debug=False)
