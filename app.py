@@ -299,7 +299,7 @@ def test():
 def page_not_found(e):
     # Check if the request was for a missing image in img_tmp
     # print(request.headers.get('Accept'))
-    if request.path.startswith('/static/img_tmp/') and request.path.endswith('.png'):
+    if request.path.startswith('/static/img_cur/') and request.path.endswith('.png'):
         # Return a generic image from your static folder
         return send_from_directory('static', 'generic.jpg'), 307
     # Otherwise, show the normal 404 page
