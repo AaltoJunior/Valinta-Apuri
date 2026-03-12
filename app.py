@@ -102,6 +102,7 @@ def poller():
 
     while True:
         time.sleep(POLL_INTERVAL_SECONDS)
+        global df, categories 
         print(f"\n🔍 Checking hash... ({datetime.now().strftime('%H:%M:%S')})")
 
         current_hash = get_file_hashes()
@@ -110,6 +111,8 @@ def poller():
             print(f"🔔 Hash changed! Downloading...")
             download_file()
             last_hash = current_hash
+            df, categories = load_and_process_excel()
+            load_img_from_excel()
         else:
             print(f"   No changes.")
 
@@ -172,26 +175,35 @@ def load_and_process_excel(file_path='dp/d.xlsx'):
         
         
 def load_img_from_excel():
-    output_folder = "static/img_tmp"
+    tmp_folder = "static/img_tmp"
+    cur_folder = "static/img_cur"
 
-    # Clean the output folder if it exists, then recreate it
-    if os.path.exists(output_folder):
-        shutil.rmtree(output_folder)
-    os.makedirs(output_folder, exist_ok=True)
+    # Work in tmp folder (clean slate)
+    if os.path.exists(tmp_folder):
+        shutil.rmtree(tmp_folder)
+    os.makedirs(tmp_folder, exist_ok=True)
+
+    # Ensure cur folder exists
+    os.makedirs(cur_folder, exist_ok=True)
 
     wb = load_workbook('dp/d.xlsx')
     sheet = wb['Sheet1']
     image_loader = SheetImageLoader(sheet)
 
-    # Loop through all rows in column H (e.g., H2 to H100)
+    # Process and save all images to tmp folder first
     for row in range(2, sheet.max_row + 1):
         cell = f'H{row}'
-        img_name = row - 2  # Adjusting to start from 0 for image naming
+        img_name = row - 2
         if image_loader.image_in(cell):
             image = image_loader.get(cell)
-            image.save(os.path.join(output_folder, f'{img_name}.png'))
-            print(f"Saved image in {cell} as {output_folder}/{img_name}.png")
-    
+            image.save(os.path.join(tmp_folder, f'{img_name}.png'))
+            print(f"Saved image in {cell} as {tmp_folder}/{img_name}.png")
+
+    # Swap: clear cur and copy tmp -> cur (minimizes downtime)
+    if os.path.exists(cur_folder):
+        shutil.rmtree(cur_folder)
+    shutil.copytree(tmp_folder, cur_folder)
+
     print("✅ Pictures reloaded successfully!")
     
 
@@ -293,4 +305,4 @@ def page_not_found(e):
     return render_template('404.html'), 404
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=False, host="0.0.0.0", port=80)
