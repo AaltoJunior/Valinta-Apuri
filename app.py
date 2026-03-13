@@ -99,6 +99,8 @@ def poller():
     download_file()
     last_hash = get_file_hashes()
     print(f"📄 Initial hash: {last_hash}")
+    
+    data_loaded.set() 
 
     while True:
         time.sleep(POLL_INTERVAL_SECONDS)
@@ -109,10 +111,27 @@ def poller():
 
         if current_hash and current_hash != last_hash:
             print(f"🔔 Hash changed! Downloading...")
-            download_file()
-            last_hash = current_hash
-            df, categories = load_and_process_excel()
-            load_img_from_excel()
+            try:
+                download_file()
+                last_hash = current_hash
+                print(f"Download successful, updated hash: {last_hash}")
+            except Exception as e:
+                print(f"❌ Download failed: {e}")
+                continue
+            
+            try:
+                df, categories = load_and_process_excel()
+                print(f"✅ Excel data reloaded successfully!")
+            except Exception as e:
+                print(f"❌ Excel processing failed: {e}")
+                continue
+            
+            try:
+                load_img_from_excel()
+                print(f"✅ Images reloaded successfully!")
+            except Exception as e:
+                print(f"❌ Image loading failed: {e}")
+                continue
         else:
             print(f"   No changes.")
 
@@ -208,15 +227,16 @@ def load_img_from_excel():
     
 
 # Start the polling in a separate thread so it doesn't block the Flask app
+data_loaded = threading.Event()
 poller_thread = threading.Thread(target=poller, daemon=True)
 poller_thread.start()
 
-time.sleep(5) # Wait a bit before loading images to ensure the first download is complete
-
+data_loaded.wait(timeout=5)  # Wait until the initial data is loaded before starting the Flask app
 
 # Load initial data
 df, categories = load_and_process_excel()
 load_img_from_excel()
+
 
 app = Flask(__name__)
 
