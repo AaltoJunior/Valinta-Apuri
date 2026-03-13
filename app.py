@@ -178,6 +178,7 @@ def load_and_process_excel(file_path='dp/d.xlsx'):
 
     df['Category'] = df['Category'].replace('', np.nan)
     df['Location'] = df['Location'].replace('', np.nan)
+    df = df.dropna(subset=['Workshop', 'Location']).reset_index(drop=True)
     cdf = df.dropna(subset=['Category'])
     categories = (
         cdf['Category']
