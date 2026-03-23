@@ -192,7 +192,6 @@ def poller():
     
 
     while True:
-        time.sleep(POLL_INTERVAL_SECONDS)
         global df, categories 
         print(f"\n🔍 Checking hash... ({datetime.now().strftime('%H:%M:%S')})")
 
@@ -225,6 +224,8 @@ def poller():
                 continue
         else:
             print(f"   No changes.")
+            
+        time.sleep(POLL_INTERVAL_SECONDS)
             
             
 if __name__ == "__main__":
