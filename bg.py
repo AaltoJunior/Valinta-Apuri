@@ -184,11 +184,10 @@ def load_img_from_excel():
     
 
 def poller():
-    print("🚀 Starting poller (every 5 minutes)")
+    print("🚀 Starting poller")
 
-    download_file()
-    last_hash = get_file_hashes()
-    print(f"📄 Initial hash: {last_hash}")
+    
+    last_hash = "asdasdasd" # Dummy initial value to ensure the first check triggers a download
     
 
     while True:
