@@ -7,3 +7,5 @@ openpyxl==3.1.5
 openpyxl_image_loader==1.0.5
 msal==1.32.3
 requests==2.32.3
+pillow==11.2.1
+filetype==1.2.0

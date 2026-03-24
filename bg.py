@@ -25,6 +25,10 @@ from openpyxl_image_loader import SheetImageLoader
 
 from time import sleep
 
+from PIL import Image
+import filetype
+
+
 
 load_dotenv()
 
@@ -174,6 +178,21 @@ def load_img_from_excel():
             image = image_loader.get(cell)
             image.save(os.path.join(tmp_folder, f'{img_name}.png'))
             print(f"Saved image in {cell} as {tmp_folder}/{img_name}.png")
+            
+    # Convert PNGs to JPGs and resize (to optimize for web)
+    for img_file in os.listdir(tmp_folder):
+        img_path = os.path.join(tmp_folder, img_file)
+        if os.path.isfile(img_path) and filetype.is_image(img_path):
+            with Image.open(img_path) as img:
+                jpg_path = img_path.rsplit('.', 1)[0] + '.jpg'
+                w, h = img.size
+                new_h = 400
+                new_w = int(w * (new_h / h))
+                img = img.resize((new_w, new_h))
+                img.convert('RGB').save(jpg_path, quality=60)
+                os.remove(img_path)  # Remove original PNG
+                print(f"Converted {img_file} to {jpg_path}")
+    
 
     # Swap: clear cur and copy tmp -> cur (minimizes downtime)
     if os.path.exists(cur_folder):
