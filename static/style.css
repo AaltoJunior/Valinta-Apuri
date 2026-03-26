@@ -5,12 +5,12 @@
 
 
 .form {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-        align-content: center;
-        justify-content: center;
-        align-items: center;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: center;
+    align-items: center;
 }
 
 
@@ -62,36 +62,22 @@
     object-fit: cover;
 }
 
-/* body {
-    background-color: #d7d7d7;
-    font-family: 'BwGradual-Black';
-
-    background-image: url('AALTO_JUNIOR_LOGO_UNDER_RGB_WHITE.png');  
-    background-repeat: no-repeat;  
-    background-position: center;  
-    background-size: 200%;  
-} */
 
 body {
-  background-color: #d7d7d7;
-  font-family: 'BwGradual-Black';
-  position: relative;
-  margin: 0;
-  min-height: 100vh;
-  /* overflow: hidden; */
+    background-color: #d7d7d7;
+    font-family: 'BwGradual-Black';
+    position: relative;
+    margin: 0;
+    min-height: 100vh;
+    background-image: url('BG.png');
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position-y: center;
+    background-position-x: center;
+    background-size: 90%;
 }
 
-body::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: url('AALTO_JUNIOR_LOGO_UNDER_RGB_WHITE.png');
-  background-repeat: repeat-y;
-  background-position: center;
-  background-size: 200%;
-  filter: drop-shadow(0 10px 10px rgba(0, 0, 0, 0.5)); /* 👈 the shadow */
-  z-index: -1;
-}
+
 
 .row {
     display: flex;
@@ -139,38 +125,38 @@ body::before {
 }
 
 input[type="checkbox"] {
-  /* Remove default OS styles */
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  cursor: pointer;
-  
-  /* Custom box */
-  width: 20px;
-  height: 20px;
-  border: 2px solid #555;
-  border-radius: 4px; /* Change to 50% for round look */
-  position: relative;
-  vertical-align: middle;
-  transition: all 0.2s ease;
+    /* Remove default OS styles */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    
+    /* Custom box */
+    width: 20px;
+    height: 20px;
+    border: 2px solid #555;
+    border-radius: 4px; /* Change to 50% for round look */
+    position: relative;
+    vertical-align: middle;
+    transition: all 0.2s ease;
 }
 
 input[type="checkbox"]:checked::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 10px;
-  height: 10px;
-  background: #555;
-  border-radius: 50%; /* The "dot" */
-  transform: translate(-50%, -50%);
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    background: #555;
+    border-radius: 50%; /* The "dot" */
+    transform: translate(-50%, -50%);
 }
 input[type="checkbox"]:checked::after {
-  background: #23E970;
+    background: #23E970;
 }
 input[type="checkbox"]:checked {
-  background: #555;
+    background: #555;
 }
 
 .row-element {
@@ -231,4 +217,18 @@ label {
         justify-content: center;
         align-items: center;
     }
+
 }
+
+@media (hover: none) {
+    body {
+        background-image: url('AALTO_JUNIOR_LOGO_UNDER_RGB_WHITE.png');
+        background-repeat: space;
+        background-attachment: fixed;
+        background-position-y: top;
+        background-position-x:  center;
+        background-size: 100%;
+    }
+}
+
+/* TODO: Mobile sideways layout */
