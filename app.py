@@ -1,37 +1,34 @@
 from flask import (Flask, redirect, render_template, request,
                    send_from_directory, url_for, abort, Response)
+from flask_compress import Compress
 
 import pandas as pd
 import numpy as np
 from dotenv import load_dotenv
 import os
 
-import hashlib
-import hmac
 from termcolor import colored
 
-
-import msal
-import requests
 import time
 from datetime import datetime
 
 import threading
 
 import os
-import shutil
-from openpyxl import load_workbook
-from openpyxl_image_loader import SheetImageLoader
 
 from time import sleep
+from pathlib import Path
 
-load_dotenv()
 
-
+# If not in production, load .env for development. In production, we expect environment variables from systemd.
+if os.getenv("ENV") != "production":
+    from dotenv import load_dotenv
+    load_dotenv()
 
 
 def data_update_loop():
-    time_old = 0
+    # This function runs in a separate thread and periodically checks if the data files have been updated.
+    global time_old
     while True:
         global df, categories
         time_new = os.path.getmtime("./tmp/data.pkl")
@@ -46,10 +43,17 @@ def data_update_loop():
 
 
 
+# Wait until both files exist
+while not (Path("./tmp/data.pkl").exists() and Path("./tmp/categories.pkl").exists()):
+    print("Waiting for data files to be created...")
+    time.sleep(1)
+
+
 df = pd.DataFrame()  # Placeholder until we load real data
-categories = []
+categories = [] # Placeholder until we load real data
 
 # Start the polling in a separate thread so it doesn't block the Flask app
+time_old = 0 # Initialize to 0 so the first check will always load the data
 data_loaded = threading.Event()
 poller_thread = threading.Thread(target=data_update_loop, daemon=True)
 poller_thread.start()
@@ -58,10 +62,11 @@ data_loaded.wait(timeout=5)  # Wait until the initial data is loaded before star
 
 
 app = Flask(__name__)
-
+Compress(app) # Enable gzip compression for responses
 
 @app.route('/', methods=['GET'])
 def index():
+    global time_old
     # Collect selected levels, days, and categories from query parameters
 
     selected_days = [day for day in ["Ma", "Ti", "Ke", "To", "Pe"] if request.args.get(day) == "True"]
@@ -85,13 +90,6 @@ def index():
     
     selected_locations = [loc for loc in df['Location'].unique() if request.args.get(loc) == "True"]
 
-    # Debugging help: print raw and parsed values so we can spot encoding/parse issues
-    try:
-        print("DEBUG request.args:", dict(request.args))
-        print("DEBUG lvl_group raw:", request.args.getlist('lvl_group'))
-        print("DEBUG selected_levels (after parse):", selected_levels)
-    except Exception:
-        pass
     
     selected_categories = [cat for cat in categories if request.args.get(cat) == "True"]
 
@@ -123,21 +121,26 @@ def index():
         df=df_filtered.to_html(classes='data', header="true", index=True, justify='center'),
         rowItems=df_filtered.itertuples(name=None),
         categories=categories,
-        locations=df['Location'].unique()
+        locations=df['Location'].unique(),
+        last_updated=datetime.fromtimestamp(time_old).strftime('%Y-%m-%d %H:%M:%S')
     )
 
-@app.route("/test", methods=['GET'])
-def test():
-    return df.to_html(classes='data', header="true")
-    # return render_template('test.html')
-    
-    
+# Route to get all data in a simple table format (used for debugging and testing) disabled by default
+# @app.route("/test", methods=['GET'])
+# def test():
+#     return df.to_html(classes='data', header="true")
 
-    
+
+# Route for robots.txt and sitemap.xml to be accessible    
+@app.route('/robots.txt')
+@app.route('/sitemap.xml')
+def static_from_root():
+    return send_from_directory(app.static_folder, request.path[1:])
+
+# Custom 404 error handler to serve a generic image for missing images in img_cur, and a friendly 404 page for other missing resources
 @app.errorhandler(404)
 def page_not_found(e):
-    # Check if the request was for a missing image in img_tmp
-    # print(request.headers.get('Accept'))
+    # Check if the request was for a missing image in img_cur
     if request.path.startswith('/static/img_cur/') and request.path.endswith('.jpg'):
         # Return a generic image from your static folder
         return send_from_directory('static', 'generic.jpg'), 307

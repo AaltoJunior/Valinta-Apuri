@@ -1,38 +1,48 @@
 <!DOCTYPE html>
-<html>
+<html lang="fi">
 <head>
     <meta charset="UTF-8" />
     <meta name="language" content="fi">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="theme-color" content="#ff70c1">
 
-    <title>Aalto-yliopisto Juniorin opintokäyntien valinta apuri</title>
+    <title>Aalto-yliopisto Junior Valinta-apuri</title>
+
+    <meta name="description" content="Aalto-yliopisto Juniorin valinta-apuri auttaa sinua löytämään sopivia ja kiinnostavia työpajoja monipuolisesta työpajavalikoimastamme!" />
+
+    <link rel="icon" type="image/png" href="/static/assets/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/static/assets/favicon.svg" />
+    <link rel="shortcut icon" href="/static/assets/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/assets/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Aalto-yliopisto Junior Valinta-apuri" />
+    <link rel="manifest" href="/static/assets/site.webmanifest" />
 
 
+
+    <meta property="og:url" content="https://juniorapuri.aalto.fi/">
+    <meta property="og:title" content="Aalto-yliopisto Junior Valinta-apuri">
+    <meta property="og:description" content="Aalto-yliopisto Juniorin valinta-apuri auttaa sinua löytämään sopivia ja kiinnostavia työpajoja monipuolisesta työpajavalikoimastamme!">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://dtm7d1tf-80.euw.devtunnels.ms/static/assets/card.png">
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" /> 
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="twitter:domain" content="juniorapuri.aalto.fi">
+    <meta property="twitter:url" content="https://juniorapuri.aalto.fi/">
+    <meta name="twitter:title" content="Aalto-yliopisto Junior Valinta-apuri">
+    <meta name="twitter:description" content="Aalto-yliopisto Juniorin valinta-apuri auttaa sinua löytämään sopivia ja kiinnostavia työpajoja monipuolisesta työpajavalikoimastamme!">
+    <meta name="twitter:image" content="https://dtm7d1tf-80.euw.devtunnels.ms/static/assets/card.png">
+    <meta name="twitter:image:width" content="1200" />
+    <meta name="twitter:image:height" content="630" />
 </head>
 <body>
-<div>
+<div class="main">
 
    
     <div>
         <form action="" class="form">
-            <!-- {% if selected_levels %}
-                {% include 'aste.html' %}
-            {% if selected_days %}
-                {% include 'paiva.html' %}
-            {% if selected_categories %}
-                {% include 'kategoria.html' %}
-            {% else %}
-                {% include 'kategoria-empty.html' %}
-            {% endif %}
-
-            {% else %}
-                {% include 'paiva-empty.html' %}
-            {% endif %}
-
-            {% else %}
-                {% include 'taso-empty.html' %}
-            {% endif %}-->
 
             {% if selected_categories %}
                 {% include 'kategoria.html' %}
@@ -46,7 +56,7 @@
             {% endif %}
 
             {% else %}
-                {% include 'taso-empty.html' %}
+                {% include 'aste-empty.html' %}
             {% endif %}
 
             {% else %}
@@ -56,13 +66,7 @@
                 <input id="submit" type="submit" value="➔" />
             </div>
         </form>
-        <!-- <div>
-            <p>Criteria: 
-            {{ selected_levels }}
-            {{ selected_days }}
-            {{ selected_categories }}
-            </p>
-        </div> -->
+
 
 
         <div class="korttipakka">
@@ -72,12 +76,9 @@
         </div>
 
 
-        <!--<div>
-            {{ df | safe }}
-        </div>-->
 
     </div>
 </div>
-
+    {% include 'footer.html' %}
 </body>
 </html>

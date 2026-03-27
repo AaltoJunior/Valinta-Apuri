@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://juniorapuri.aalto.fi/sitemap.xml
