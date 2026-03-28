@@ -20,11 +20,6 @@ from time import sleep
 from pathlib import Path
 
 
-# If not in production, load .env for development. In production, we expect environment variables from systemd.
-if os.getenv("ENV") != "production":
-    from dotenv import load_dotenv
-    load_dotenv()
-
 
 def data_update_loop():
     # This function runs in a separate thread and periodically checks if the data files have been updated.

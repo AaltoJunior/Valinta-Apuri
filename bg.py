@@ -30,7 +30,11 @@ import filetype
 
 
 
-load_dotenv()
+# If not in production, load .env for development. In production, we expect environment variables from systemd.
+if os.getenv("ENV") != "production":
+    from dotenv import load_dotenv
+    load_dotenv()
+
 
 CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")

@@ -3,8 +3,166 @@
 > [!WARNING]
 > Valinta-apuri projekti on vielä kehitteillä eikä ole valmis laajaan käyttöön!
 
-## Mikä on valinta-apuri?
+## Valinta-apuri?
+
+### Mikä on valinta-apuri?
+
 Aalto-yliopisto Juniorin valinta-apuri auttaa sinua löytämään sopivia ja kiinnostavia työpajoja monipuolisesta työpajavalikoimastamme!
 
-## Mistä löydän valinta-apurin?
+### Mistä löydän valinta-apurin?
+
 Aalto-yliopisto Junior Valinta-apuriin pääset [tästä](https://)!
+
+## Toiminta
+
+### Rakenne
+
+Perustuu kahteen pyhon tiedostoon. [bg.py](/bg.py) on taustalla toimiva dataa päivittävä prosessi joka kommunikoi sharepointin kanssa. [app.py](/app.py) on itse palvein yhdessä [Gunicor](https://gunicorn.org/) WSGI palvelimen kanssa.
+
+Taustaprosessi tarvitsee environmet variableja autentikaatioon MS Graphin kanssa ladatatakseen tiedostot teamssista.
+
+``` sh
+CLIENT_ID = ""
+CLIENT_SECRET = ""
+TENANT_ID = ""
+DRIVE_ID = ""
+```
+
+Nämä voivat olla .env tiedostossa kehittämistä varten. Jos `ENV = "prudction` ei ole määritelty luetaan muuttujat .env tiedostosta.
+
+### Konfigurointi ja suorittaminen
+Molemmat python tiedostot määritetään systemd kautta serviceiksi.
+
+#### Taustaprosessi
+
+Luodaan taustaprosessin tiedosto:
+
+```bash
+sudo nano /etc/systemd/system/bg.service
+```
+
+bg.service tiedoston sisältö:
+
+```ini
+[Unit]
+Description=Valita-apuri Background Data Updater
+After=network.target
+
+[Service]
+Type=simple
+User=youruser
+WorkingDirectory=/home/youruser/Valinta-apuri
+
+Environment="ENV=production"
+Environment="CLIENT_ID="
+Environment="CLIENT_SECRET="
+Environment="TENANT_ID="
+Environment="DRIVE_ID="
+
+ExecStart=/usr/bin/python3.12 -u bg.py
+
+Restart=always
+RestartSec=5
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Luodaan palvelinprosessin tiedosto:
+
+```bash
+sudo nano /etc/systemd/system/gunicorn.service
+```
+
+bg.service tiedoston sisältö:
+
+```ini
+[Unit]
+Description=Valinta-apuri Gunicorn Service
+After=network.target bg.service
+Requires=bg.service
+
+[Service]
+Type=simple
+User=youruser
+WorkingDirectory=/home/youruser/Valinta-Apuri/
+
+Environment="ENV=production"
+
+ExecStart=/usr/bin/python3.12 -m gunicorn \
+    --workers 3 \
+    --bind 0.0.0.0:80 \
+    --access-logfile - \
+    --error-logfile - \
+    app:app
+
+Restart=always
+RestartSec=5
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Käynnistys:
+
+```bash
+sudo systemctl start bg.service
+sudo systemctl start gunicorn.service
+```
+
+Sammuttaminen:
+
+```bash
+sudo systemctl stop gunicorn.service
+sudo systemctl stop bg.service
+```
+
+Uudelleenkäynnistys:
+
+```bash
+sudo systemctl restart bg.service
+sudo systemctl restart gunicorn.service
+```
+
+Satuksen tarkastaminen:
+
+```bash
+systemctl status bg.service
+systemctl status gunicorn.service
+```
+
+Automaattinen käynnistys:
+
+```bash
+sudo systemctl enable bg.service
+sudo systemctl enable gunicorn.service
+```
+
+Automaattisen käynnistyksen tarkastus:
+
+```bash
+systemctl is-enabled bg.service
+systemctl is-enabled gunicorn.service
+```
+
+Muokkaaminen:
+
+```bash
+sudo nano /etc/systemd/system/bg.service
+sudo nano /etc/systemd/system/gunicorn.service
+```
+
+Jonka jälkeen:
+
+```bash
+sudo systemctl daemon-reload
+
+sudo systemctl restart bg.service
+sudo systemctl restart gunicorn.service
+```
