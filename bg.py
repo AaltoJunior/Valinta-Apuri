@@ -193,7 +193,7 @@ def load_img_from_excel():
                 new_h = 400
                 new_w = int(w * (new_h / h))
                 img = img.resize((new_w, new_h))
-                img.convert('RGB').save(jpg_path, quality=60)
+                img.convert('RGB').save(jpg_path, quality=80)
                 os.remove(img_path)  # Remove original PNG
                 print(f"Converted {img_file} to {jpg_path}")
     
