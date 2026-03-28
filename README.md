@@ -99,10 +99,14 @@ WorkingDirectory=/home/youruser/Valinta-Apuri/
 Environment="ENV=production"
 
 ExecStart=/usr/bin/python3.12 -m gunicorn \
-    --workers 3 \
-    --bind 0.0.0.0:80 \
-    --access-logfile - \
+    --worker-class gthread \
+    --threads 4 \
+    --workers 2 \
+    --bind 0.0.0.0:443 \
+    --certfile cert.pem \
+    --keyfile key.pem \
     --error-logfile - \
+    --http-protocols h2,h1 \
     app:app
 
 Restart=always
@@ -113,6 +117,18 @@ StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
+```
+
+HTTPS palvelinta varten tarvitaan sertifikaatti joka sisältää cert.pem ja key.pem tiedostot, sekä avoin portti 443. Portin voi avata esimerkisi:
+
+```bash
+sudo firewall-cmd --add-port=443/tcp --permanent
+```
+
+Ja väliaikaisen sertifikaation voi luoda komennolla:
+
+```bash
+openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -sha256 -days 365 -nodes
 ```
 
 Käynnistys:
@@ -178,4 +194,4 @@ Logi tiedostojen tarkastelu:
 ```bash
 journalctl -u bg.service -f
 journalctl -u gunicorn.service -f
-````
+```
