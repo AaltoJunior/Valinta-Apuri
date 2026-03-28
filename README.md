@@ -33,6 +33,12 @@ Nämä voivat olla .env tiedostossa kehittämistä varten. Jos `ENV = "prudction
 ### Konfigurointi ja suorittaminen
 Molemmat python tiedostot määritetään systemd kautta serviceiksi.
 
+Ennnen kun prosesseja voidaan suorittaa tätytyy asetaa vaatimukset:
+
+```bash
+pip3.12 install -r requirements.txt
+```
+
 #### Taustaprosessi
 
 Luodaan taustaprosessin tiedosto:
@@ -166,3 +172,10 @@ sudo systemctl daemon-reload
 sudo systemctl restart bg.service
 sudo systemctl restart gunicorn.service
 ```
+
+Logi tiedostojen tarkastelu:
+
+```bash
+journalctl -u bg.service -f
+journalctl -u gunicorn.service -f
+````
