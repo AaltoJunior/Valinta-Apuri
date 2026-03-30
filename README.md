@@ -199,7 +199,7 @@ journalctl -u gunicorn.service -f
 
 - [X] HTTP/2 protokolla
 - [x] preload/preconnect .css ja fonteille (myös BG.webp)
-- [ ] Cache-Controll implementaatio kuville yms.
+- [x] Cache-Controll implementaatio kuville yms.
 - [ ] Kuvat .jpg -> .webp
 - [ ] Vaihto palvelimella renderöidystä html tiedostosta javascriptiin
 - [ ] Vaihto polling pohjaisesta taustaprorssista webhookkiin
