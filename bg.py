@@ -183,19 +183,19 @@ def load_img_from_excel():
             image.save(os.path.join(tmp_folder, f'{img_name}.png'))
             print(f"Saved image in {cell} as {tmp_folder}/{img_name}.png")
             
-    # Convert PNGs to JPGs and resize (to optimize for web)
+    # Convert PNGs to WEBPs and resize (to optimize for web)
     for img_file in os.listdir(tmp_folder):
         img_path = os.path.join(tmp_folder, img_file)
         if os.path.isfile(img_path) and filetype.is_image(img_path):
             with Image.open(img_path) as img:
-                jpg_path = img_path.rsplit('.', 1)[0] + '.jpg'
+                webp_path = img_path.rsplit('.', 1)[0] + '.webp'
                 w, h = img.size
                 new_h = 400
                 new_w = int(w * (new_h / h))
                 img = img.resize((new_w, new_h))
-                img.convert('RGB').save(jpg_path, quality=80)
+                img.convert('RGB').save(webp_path, format='WEBP', quality=80, method=6)
                 os.remove(img_path)  # Remove original PNG
-                print(f"Converted {img_file} to {jpg_path}")
+                print(f"Converted {img_file} to {webp_path}")
     
 
     # Swap: clear cur and copy tmp -> cur (minimizes downtime)
