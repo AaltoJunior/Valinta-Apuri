@@ -5,3 +5,6 @@ static/img_tmp/*
 !static/img_tmp/.gitkeep
 __pycache__/
 .vscode/
+*.pem
+*.key
+*.crt
