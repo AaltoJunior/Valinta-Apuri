@@ -69,7 +69,6 @@ def index():
     ])
     
     global time_old
-    global time_old
     # Collect selected levels, days, and categories from query parameters
 
     selected_days = [day for day in ["Ma", "Ti", "Ke", "To", "Pe"] if request.args.get(day) == "True"]
