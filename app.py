@@ -66,6 +66,7 @@ def index():
         request.environ['wsgi.early_hints']([
         ('Link', '</static/style.css>; rel=preload; as=style'),
         ('Link', '</static/BwGradual-Regular.woff2>; rel=preload; as=font; crossorigin'),
+        ('Link', '</static/BG.webp>; rel=preload; as=image'),
     ])
     
     global time_old
