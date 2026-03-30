@@ -133,9 +133,13 @@ def index():
 # def test():
 #     return df.to_html(classes='data', header="true")
 
-@app.route('/static/<path:filename>')
-def static_files(filename):
-    return send_from_directory('static', filename, max_age=86400 * 3)  # 3 days
+@app.after_request
+def add_cache_headers(response):
+    if request.path.startswith('/static/'):
+        response.cache_control.no_cache = None
+        response.cache_control.max_age = 86400 * 3
+        response.cache_control.public = True
+    return response
 
 def static_url(filename):
     filepath = os.path.join(app.static_folder, filename)

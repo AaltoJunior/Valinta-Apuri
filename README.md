@@ -31,6 +31,7 @@ DRIVE_ID = ""
 Nämä voivat olla .env tiedostossa kehittämistä varten. Jos `ENV = "prudction` ei ole määritelty luetaan muuttujat .env tiedostosta.
 
 ### Konfigurointi ja suorittaminen
+
 Molemmat python tiedostot määritetään systemd kautta serviceiksi.
 
 Ennnen kun prosesseja voidaan suorittaa tätytyy asetaa vaatimukset:
