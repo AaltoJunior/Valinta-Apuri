@@ -133,6 +133,19 @@ def index():
 # def test():
 #     return df.to_html(classes='data', header="true")
 
+@app.route('/static/<path:filename>')
+def static_files(filename):
+    return send_from_directory('static', filename, max_age=86400 * 3)  # 3 days
+
+def static_url(filename):
+    filepath = os.path.join(app.static_folder, filename)
+    timestamp = int(os.path.getmtime(filepath))
+    return f'/static/{filename}?v={timestamp}'
+
+@app.context_processor
+def utility_processor():
+    return dict(static_url=static_url)
+
 
 # Route for robots.txt and sitemap.xml to be accessible    
 @app.route('/robots.txt')
