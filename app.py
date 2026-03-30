@@ -61,6 +61,14 @@ Compress(app) # Enable gzip compression for responses
 
 @app.route('/', methods=['GET'])
 def index():
+    # Serve early hints for preloading critical assets like .css and fonts
+    if 'wsgi.early_hints' in request.environ:
+        request.environ['wsgi.early_hints']([
+        ('Link', '</static/style.css>; rel=preload; as=style'),
+        ('Link', '</static/BwGradual-Regular.woff2>; rel=preload; as=font; crossorigin'),
+    ])
+    
+    global time_old
     global time_old
     # Collect selected levels, days, and categories from query parameters
 
