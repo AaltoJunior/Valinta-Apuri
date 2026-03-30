@@ -163,7 +163,7 @@ def static_from_root():
 @app.errorhandler(404)
 def page_not_found(e):
     # Check if the request was for a missing image in img_cur
-    if request.path.startswith('/static/img_cur/') and request.path.endswith('.jpg'):
+    if request.path.startswith('/static/img_cur/') and request.path.endswith('.webp'):
         # Return a generic image from your static folder
         return send_from_directory('static', 'generic.jpg'), 307
     # Otherwise, show the normal 404 page
