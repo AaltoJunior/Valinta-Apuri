@@ -143,6 +143,8 @@ def add_cache_headers(response):
 
 def static_url(filename):
     filepath = os.path.join(app.static_folder, filename)
+    if not os.path.exists(filepath):
+        return f'/static/{filename}'
     timestamp = int(os.path.getmtime(filepath))
     return f'/static/{filename}?v={timestamp}'
 
