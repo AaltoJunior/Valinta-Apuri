@@ -1,6 +1,7 @@
 @font-face {
     font-family: 'BwGradual-Black'; /*a name to be used later*/
     src: url('BwGradual-Regular.otf'); /*URL to font*/
+    font-display: swap;
 }
 
 

@@ -39,8 +39,6 @@ Ennnen kun prosesseja voidaan suorittaa tätytyy asetaa vaatimukset:
 pip3.12 install -r requirements.txt
 ```
 
-#### Taustaprosessi
-
 Luodaan taustaprosessin tiedosto:
 
 ```bash
@@ -195,3 +193,9 @@ Logi tiedostojen tarkastelu:
 journalctl -u bg.service -f
 journalctl -u gunicorn.service -f
 ```
+
+## Todo
+
+- [X] HTTP/2 protokolla
+- [ ] preload/preconnect .css ja fonteille
+- [ ] Vaihto palvelimella renderöidystä html tiedostosta javascriptiin
