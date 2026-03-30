@@ -137,7 +137,7 @@ def index():
 def add_cache_headers(response):
     if request.path.startswith('/static/'):
         response.cache_control.no_cache = None
-        response.cache_control.max_age = 86400 * 3
+        response.cache_control.max_age = 86400 * 365 # Cache for 1 year (max cache duration for browsers)
         response.cache_control.public = True
     return response
 
