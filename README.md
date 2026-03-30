@@ -199,3 +199,4 @@ journalctl -u gunicorn.service -f
 - [X] HTTP/2 protokolla
 - [ ] preload/preconnect .css ja fonteille
 - [ ] Vaihto palvelimella renderöidystä html tiedostosta javascriptiin
+- [ ] Vaihto polling pohjaisesta taustaprorssista webhookkiin
