@@ -197,6 +197,8 @@ journalctl -u gunicorn.service -f
 ## Todo
 
 - [X] HTTP/2 protokolla
-- [ ] preload/preconnect .css ja fonteille
+- [x] preload/preconnect .css ja fonteille (myös BG.webp)
+- [ ] Cache-Controll implementaatio kuville yms.
+- [ ] Kuvat .jpg -> .webp
 - [ ] Vaihto palvelimella renderöidystä html tiedostosta javascriptiin
 - [ ] Vaihto polling pohjaisesta taustaprorssista webhookkiin
