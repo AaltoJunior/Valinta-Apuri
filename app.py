@@ -64,9 +64,9 @@ def index():
     # Serve early hints for preloading critical assets like .css and fonts
     if 'wsgi.early_hints' in request.environ:
         request.environ['wsgi.early_hints']([
-        ('Link', '</static/style.css>; rel=preload; as=style'),
-        ('Link', '</static/BwGradual-Regular.woff2>; rel=preload; as=font; crossorigin'),
-        ('Link', '</static/BG.webp>; rel=preload; as=image'),
+            ('Link', f'<{static_url("style.css")}>; rel=preload; as=style'),
+            ('Link', f'<{static_url("BwGradual-Regular.woff2")}>; rel=preload; as=font; crossorigin'),
+            ('Link', f'<{static_url("BG.webp")}>; rel=preload; as=image'),
     ])
     
     global time_old

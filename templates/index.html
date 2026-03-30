@@ -5,9 +5,9 @@
     <meta name="language" content="fi">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="preload" href="/static/BwGradual-Regular.woff2" as="font" crossorigin fetchpriority="high">
-    <link rel="preload" href="/static/BG.webp" as="image" fetchpriority="high">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preload" href="{{ static_url('BwGradual-Regular.woff2') }}" as="font" crossorigin fetchpriority="high">
+    <link rel="preload" href="{{ static_url('BG.webp') }}" as="image" fetchpriority="high">
+    <link rel="stylesheet" href="{{ static_url('style.css') }}">
     
     <meta name="theme-color" content="#ff70c1">
 
