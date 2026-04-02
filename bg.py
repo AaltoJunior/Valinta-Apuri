@@ -156,7 +156,7 @@ def load_and_process_excel(file_path='dp/d.xlsx'):
     )
     
     
-    return df, pd.Series(categories)
+    return df, pd.Series(sorted(categories))
 
 def load_img_from_excel():
     tmp_folder = "static/img_tmp"
