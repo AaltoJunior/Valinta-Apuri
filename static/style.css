@@ -213,6 +213,14 @@ label {
     flex: 1;
 }
 
+header {
+    padding-left: 40px;
+    padding-right: 40px;
+    background-color: #ff70c1;
+    text-align: center;
+    margin-bottom: 40px;
+}
+
 
 footer {
     background-color: gray;
