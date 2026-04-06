@@ -78,9 +78,11 @@
 
 
 
-        <div class="korttipakka">
+        <div id="valikoima" class="korttipakka">
             {% for i in rowItems %}
                 {% include 'kortti.html' %}
+            {% else %}
+                {% include 'kortti-empty.html' %}
             {% endfor %}
         </div>
 
