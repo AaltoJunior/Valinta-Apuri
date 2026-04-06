@@ -111,6 +111,8 @@ def index():
         if selected_locations and not df_filtered.empty:
             df_filtered = df_filtered[df_filtered['Location'].apply(lambda locs: any(loc in str(locs) for loc in selected_locations))]
             
+    df_filtered = df_filtered.sort_values(by=["Workshop"])
+    
     return render_template(
       'index.html',
       # Pass a concrete list so the value can be iterated multiple times in templates
