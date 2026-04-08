@@ -41,6 +41,8 @@
     <meta name="twitter:image" content="https://juniorapuri.aalto.fi/static/assets/card.png">
     <meta name="twitter:image:width" content="1200" />
     <meta name="twitter:image:height" content="630" />
+
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
 </head>
 <body>
     <header>
@@ -51,31 +53,17 @@
 
    
     <div>
-        <form action="" class="form">
 
-            {% if selected_categories %}
+
+
+        <form id="my-form" class="form" hx-post="/submit" hx-target="this" hx-swap="innerHTML">
+
                 {% include 'kategoria.html' %}
-            {% if selected_levels %}
-                {% include 'aste.html' %}
-            {% if selected_days %}
-                {% include 'paiva.html' %}
-                {% include 'location.html' %}
-            {% else %}
-                {% include 'paiva-empty.html' %}
-            {% endif %}
 
-            {% else %}
-                {% include 'aste-empty.html' %}
-            {% endif %}
-
-            {% else %}
-                {% include 'kategoria-empty.html' %}
-            {% endif %}
             <div class="submit-container">
-                <input id="submit" type="submit" value="➔" />
+                <button type="submit" id="submit">➔</button>
             </div>
         </form>
-
 
 
         <div id="valikoima" class="korttipakka">

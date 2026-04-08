@@ -201,5 +201,6 @@ journalctl -u gunicorn.service -f
 - [x] preload/preconnect .css ja fonteille (myös BG.webp)
 - [x] Cache-Controll implementaatio kuville yms.
 - [x] Kuvat .jpg -> .webp
-- [ ] Vaihto palvelimella renderöidystä html tiedostosta javascriptiin
+- [ ] ~~Vaihto palvelimella renderöidystä html tiedostosta javascriptiin~~
+- [x] Vahdettu HTMX pohjaiseen toteukseen, joka mahdollistaa sivun sisällön vaihtamisen. Eli ei tarvitse ladata koko sivua uudelleen.
 - [ ] Vaihto polling pohjaisesta taustaprorssista webhookkiin

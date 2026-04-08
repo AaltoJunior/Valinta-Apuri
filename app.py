@@ -1,6 +1,7 @@
 from flask import (Flask, redirect, render_template, request,
                    send_from_directory, url_for, abort, Response)
 from flask_compress import Compress
+from flask_htmx import HTMX
 
 import pandas as pd
 import numpy as np
@@ -57,6 +58,7 @@ data_loaded.wait(timeout=5)  # Wait until the initial data is loaded before star
 
 
 app = Flask(__name__)
+htmx = HTMX(app) # Enable HTMX support in the Flask app
 Compress(app) # Enable gzip compression for responses
 
 @app.route('/', methods=['GET'])
@@ -69,66 +71,79 @@ def index():
             ('Link', f'<{static_url("BG.webp")}>; rel=preload; as=image'),
     ])
     
-    global time_old
-    # Collect selected levels, days, and categories from query parameters
-
-    selected_days = [day for day in ["Ma", "Ti", "Ke", "To", "Pe"] if request.args.get(day) == "True"]
-    
-    # Collect individual lvlN keys (if present) and group values submitted under 'lvl_group'
-    selected_levels = set(
-        int(key.replace('lvl', ''))
-        for key in request.args
-        if key.startswith('lvl') and request.args.get(key) == "True"
-    )
-
-    # request.args.getlist('lvl_group') returns multiple selected group values (e.g. "1,2")
-    for group_val in request.args.getlist('lvl_group'):
-        for part in group_val.split(','):
-            part = part.strip()
-            if part.isdigit():
-                selected_levels.add(int(part))
-
-    # Use a sorted list downstream (same shape as before)
-    selected_levels = sorted(selected_levels)
-    
-    selected_locations = [loc for loc in df['Location'].unique() if request.args.get(loc) == "True"]
-
-    
-    selected_categories = [cat for cat in categories if request.args.get(cat) == "True"]
-
-    # Show no data if no filters are selected
-    if not selected_levels and not selected_days and not selected_categories:
-        df_filtered = df.copy() #df.iloc[0:0]  # Empty DataFrame with same columns
-    else:
-        df_filtered = df.copy()
-        # Apply filters in the order: Category -> Level -> Day
-        if selected_categories and not df_filtered.empty:
-            df_filtered = df_filtered[df_filtered['Category'].apply(lambda cats: any(cat in cats for cat in selected_categories))]
-        if selected_levels and not df_filtered.empty:
-            df_filtered = df_filtered[df_filtered['Level'].apply(lambda levels: any(lvl in levels for lvl in selected_levels))]
-        if selected_days and not df_filtered.empty:
-            df_filtered = df_filtered[df_filtered['Days'].apply(lambda days: any(day in days for day in selected_days))]
-        if selected_locations and not df_filtered.empty:
-            df_filtered = df_filtered[df_filtered['Location'].apply(lambda locs: any(loc in str(locs) for loc in selected_locations))]
-            
-    df_filtered = df_filtered.sort_values(by=["Workshop"])
+    df_filtered = df.copy()
     
     return render_template(
       'index.html',
-      # Pass a concrete list so the value can be iterated multiple times in templates
-      aste=list(enumerate(["1. Luokka", "2. Luokka", "3. Luokka", "4. Luokka", "5. Luokka",
-          "6. Luokka", "7. Luokka", "8. Luokka", "9. Luokka", "2. Aste"])),
-        selected_levels=selected_levels,
-        selected_days=selected_days,
-        selected_categories=selected_categories,
-        selected_locations=selected_locations,
-        args=request.args,
-        df=df_filtered.to_html(classes='data', header="true", index=True, justify='center'),
-        rowItems=df_filtered.itertuples(name=None),
-        categories=categories,
-        locations=df['Location'].unique(),
-        last_updated=datetime.fromtimestamp(time_old).strftime('%Y-%m-%d %H:%M:%S')
-    )
+      categories=categories,
+      rowItems=df_filtered.itertuples(name=None),
+      )
+    
+@app.route("/submit", methods=["POST"])
+def submit():
+    if htmx:
+        global time_old
+        # Collect selected levels, days, and categories from query parameters
+
+        print(request.form)
+        
+        selected_days = [day for day in ["Ma", "Ti", "Ke", "To", "Pe"] if request.form.get(day) == "True"]
+        
+        # Collect individual lvlN keys (if present) and group values submitted under 'lvl_group'
+        selected_levels = set(
+            int(key.replace('lvl', ''))
+            for key in request.form
+            if key.startswith('lvl') and request.form.get(key) == "True"
+        )
+
+        # request.form.getlist('lvl_group') returns multiple selected group values (e.g. "1,2")
+        for group_val in request.form.getlist('lvl_group'):
+            for part in group_val.split(','):
+                part = part.strip()
+                if part.isdigit():
+                    selected_levels.add(int(part))
+
+        # Use a sorted list downstream (same shape as before)
+        selected_levels = sorted(selected_levels)
+        
+        selected_locations = [loc for loc in df['Location'].unique() if request.form.get(loc) == "True"]
+
+        
+        selected_categories = [cat for cat in categories if request.form.get(cat) == "True"]
+
+        # Show no data if no filters are selected
+        if not selected_levels and not selected_days and not selected_categories:
+            df_filtered = df.copy() #df.iloc[0:0]  # Empty DataFrame with same columns
+        else:
+            df_filtered = df.copy()
+            # Apply filters in the order: Category -> Level -> Day
+            if selected_categories and not df_filtered.empty:
+                df_filtered = df_filtered[df_filtered['Category'].apply(lambda cats: any(cat in cats for cat in selected_categories))]
+            if selected_levels and not df_filtered.empty:
+                df_filtered = df_filtered[df_filtered['Level'].apply(lambda levels: any(lvl in levels for lvl in selected_levels))]
+            if selected_days and not df_filtered.empty:
+                df_filtered = df_filtered[df_filtered['Days'].apply(lambda days: any(day in days for day in selected_days))]
+            if selected_locations and not df_filtered.empty:
+                df_filtered = df_filtered[df_filtered['Location'].apply(lambda locs: any(loc in str(locs) for loc in selected_locations))]
+        
+        df_filtered = df_filtered.sort_values(by=["Workshop"])
+        
+        return render_template(
+        "partials/valikko_kortit.html",
+        # Pass a concrete list so the value can be iterated multiple times in templates
+        aste=list(enumerate(["1. Luokka", "2. Luokka", "3. Luokka", "4. Luokka", "5. Luokka",
+            "6. Luokka", "7. Luokka", "8. Luokka", "9. Luokka", "2. Aste"])),
+            selected_levels=selected_levels,
+            selected_days=selected_days,
+            selected_categories=selected_categories,
+            selected_locations=selected_locations,
+            args=request.form,
+            df=df_filtered.to_html(classes='data', header="true", index=True, justify='center'),
+            rowItems=df_filtered.itertuples(name=None),
+            categories=categories,
+            locations=df['Location'].unique(),
+            last_updated=datetime.fromtimestamp(time_old).strftime('%Y-%m-%d %H:%M:%S')
+        )
 
 # Route to get all data in a simple table format (used for debugging and testing) disabled by default
 # @app.route("/test", methods=['GET'])
