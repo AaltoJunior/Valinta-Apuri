@@ -104,21 +104,21 @@ body::before {
 }
 
 .päivä {
-    background: #d7d7d7;
+    background: #f9f9f9;
     padding: 5px;
     margin-right: 10px;
     border-radius: 5px;
 }
 
 .taso {
-    background: #d7d7d7;
+    background: #f9f9f9;
     padding: 5px;
     margin-right: 10px;
     border-radius: 5px;
 }
 
 .loc {
-    background: #d7d7d7;
+    background: #f9f9f9;
     padding: 5px;
     margin-right: 10px;
     border-radius: 5px;
@@ -134,7 +134,7 @@ body::before {
 
 
 .kategoria {
-    background: #d7d7d7;
+    background: #f9f9f9;
     padding: 5px;
     margin-right: 10px;
     border-radius: 5px;
