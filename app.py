@@ -160,6 +160,9 @@ def add_cache_headers(response):
 
 def static_url(filename):
     filepath = os.path.join(app.static_folder, filename)
+    # For style.css, check templates folder as fallback
+    if filename == 'style.css' and not os.path.exists(filepath):
+        filepath = os.path.join(app.template_folder, filename)
     if not os.path.exists(filepath):
         return f'/static/{filename}'
     timestamp = int(os.path.getmtime(filepath))
@@ -168,6 +171,16 @@ def static_url(filename):
 @app.context_processor
 def utility_processor():
     return dict(static_url=static_url)
+
+
+@app.route('/static/style.css')
+def serve_dynamic_css():
+    """Serve style.css as a Jinja template to enable cache-busting URLs."""
+    response = Response(render_template('style.css'), content_type='text/css')
+    response.cache_control.no_cache = None
+    response.cache_control.max_age = 86400 * 365  # Cache for 1 year
+    response.cache_control.public = True
+    return response
 
 
 # Route for robots.txt and sitemap.xml to be accessible    
