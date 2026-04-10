@@ -1,6 +1,6 @@
 @font-face {
-    font-family: 'BwGradual-Black';
-    src: url('BwGradual-Regular.woff2');
+    font-family: 'BwGradual-Black'; /*a name to be used later*/
+    src: url('BwGradual-Regular.otf'); /*URL to font*/
     font-display: swap;
 }
 
@@ -13,7 +13,6 @@
     justify-content: center;
     align-items: center;
 }
-
 
 
 .options {
@@ -70,17 +69,30 @@ body {
     position: relative;
     margin: 0;
     min-height: 100vh;
+    /* background-image: url('BG.webp');
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position-y: center;
+    background-position-x: center;
+    background-size: 90%; */
+
+    display: flex;
+    flex-direction: column;
+}
+
+body::before {
+    content: "";
+    position: absolute;
+    inset: 0;
     background-image: url('BG.webp');
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-position-y: center;
     background-position-x: center;
     background-size: 90%;
-
-    display: flex;
-    flex-direction: column;
+    opacity: 40%;
+    z-index: -1;
 }
-
 
 
 .row {
@@ -291,16 +303,20 @@ a {
         justify-content: center;
         align-items: center;
     }
-
 }
 
 @media (hover: none) {
-    body {
+    body::before {
+        content: "";
+        position: absolute;
+        inset: 0;
         background-image: url('BG.webp');
         background-repeat: space;
         background-attachment: scroll;
         background-position-y: top;
         background-position-x:  center;
         background-size: 300%;
+        opacity: 40%;
+        z-index: -1;
     }
 }
