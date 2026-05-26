@@ -63,6 +63,7 @@ Compress(app) # Enable gzip compression for responses
 
 @app.route('/', methods=['GET'])
 def index():
+    global tieme_old
     # Serve early hints for preloading critical assets like .css and fonts
     if 'wsgi.early_hints' in request.environ:
         request.environ['wsgi.early_hints']([
@@ -133,16 +134,16 @@ def submit():
         # Pass a concrete list so the value can be iterated multiple times in templates
         aste=list(enumerate(["1. Luokka", "2. Luokka", "3. Luokka", "4. Luokka", "5. Luokka",
             "6. Luokka", "7. Luokka", "8. Luokka", "9. Luokka", "2. Aste"])),
-            selected_levels=selected_levels,
-            selected_days=selected_days,
-            selected_categories=selected_categories,
-            selected_locations=selected_locations,
-            args=request.form,
-            df=df_filtered.to_html(classes='data', header="true", index=True, justify='center'),
-            rowItems=df_filtered.itertuples(name=None),
-            categories=categories,
-            locations=df['Location'].unique(),
-            last_updated=datetime.fromtimestamp(time_old).strftime('%Y-%m-%d %H:%M:%S')
+        selected_levels=selected_levels,
+        selected_days=selected_days,
+        selected_categories=selected_categories,
+        selected_locations=selected_locations,
+        args=request.form,
+        df=df_filtered.to_html(classes='data', header="true", index=True, justify='center'),
+        rowItems=df_filtered.itertuples(name=None),
+        categories=categories,
+        locations=df['Location'].unique(),
+        last_updated=get_last_updated()
         )
 
 # Route to get all data in a simple table format (used for debugging and testing) disabled by default
@@ -168,9 +169,15 @@ def static_url(filename):
     timestamp = int(os.path.getmtime(filepath))
     return f'/static/{filename}?v={timestamp}'
 
+
+def get_last_updated():
+    if not time_old:
+        return None
+    return datetime.fromtimestamp(time_old).strftime('%Y-%m-%d %H:%M:%S')
+
 @app.context_processor
 def utility_processor():
-    return dict(static_url=static_url)
+    return dict(static_url=static_url, last_updated=get_last_updated())
 
 
 @app.route('/static/style.css')
