@@ -64,7 +64,7 @@
 
 
 body {
-    background-color: #d7d7d7;
+    background-color: #e4e4e4;
     font-family: 'BwGradual-Black';
     position: relative;
     margin: 0;
@@ -90,7 +90,7 @@ body::before {
     background-position-y: center;
     background-position-x: center;
     background-size: 90%;
-    opacity: 40%;
+    opacity: 30%;
     z-index: -1;
 }
 
