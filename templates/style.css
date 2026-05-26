@@ -319,7 +319,7 @@ a {
         background-position-y: top;
         background-position-x:  center;
         background-size: 300%;
-        opacity: 40%;
+        opacity: 30%;
         z-index: -1;
     }
 }
