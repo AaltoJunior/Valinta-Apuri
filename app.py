@@ -173,7 +173,7 @@ def static_url(filename):
 def get_last_updated():
     if not time_old:
         return None
-    return datetime.fromtimestamp(time_old).strftime('%Y-%m-%d %H:%M:%S')
+    return datetime.fromtimestamp(time_old).strftime('%d.%m.%Y %H:%M:%S')
 
 @app.context_processor
 def utility_processor():
