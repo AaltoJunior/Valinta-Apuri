@@ -122,6 +122,7 @@ HTTPS palvelinta varten tarvitaan sertifikaatti joka sisältää cert.pem ja key
 
 ```bash
 sudo firewall-cmd --add-port=443/tcp --permanent
+sudo firewall-cmd --reload
 ```
 
 Ja väliaikaisen sertifikaation voi luoda komennolla:
