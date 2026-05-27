@@ -86,8 +86,6 @@ def submit():
     if htmx:
         global time_old
         # Collect selected levels, days, and categories from query parameters
-
-        print(request.form)
         
         selected_days = [day for day in ["Ma", "Ti", "Ke", "To", "Pe"] if request.form.get(day) == "True"]
         
@@ -134,7 +132,7 @@ def submit():
         "partials/valikko_kortit.html",
         # Pass a concrete list so the value can be iterated multiple times in templates
         aste=list(enumerate(["1. Luokka", "2. Luokka", "3. Luokka", "4. Luokka", "5. Luokka",
-            "6. Luokka", "7. Luokka", "8. Luokka", "9. Luokka", "2. Aste"])),
+            "6. Luokka", "7. Luokka", "8. Luokka", "9. Luokka", "2. aste"])),
         selected_levels=selected_levels,
         selected_days=selected_days,
         selected_categories=selected_categories,
