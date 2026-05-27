@@ -73,6 +73,7 @@ def index():
     ])
     
     df_filtered = df.copy()
+    df_filtered = df_filtered.sort_values(by=["Workshop"])
     
     return render_template(
       'index.html',
