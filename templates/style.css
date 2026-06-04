@@ -52,6 +52,12 @@
     max-width: 80vw;
 }
 
+.kortti h2 {
+    height: 58px;
+    margin-top: 0px;
+    margin-bottom: 10px;
+}
+
 .kortti.kortti-empty {
     min-height: 350px;
 }
@@ -62,6 +68,13 @@
     object-fit: cover;
 }
 
+.description {
+    display: -webkit-box;
+    -webkit-line-clamp: 8;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 152px;
+}
 
 body {
     background-color: #e4e4e4;
@@ -101,6 +114,11 @@ body::before {
     justify-content: flex-start;
     align-items: center;
     flex-wrap: wrap;
+}
+
+.row * {
+    margin-top: 3px;
+    margin-bottom: 3px;
 }
 
 .päivä {
