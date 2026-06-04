@@ -22,7 +22,7 @@
     }
   ],
   "start_url": "https://juniorapuri.aalto.fi/",
-  "theme_color": "#ff70c1",
-  "background_color": "#d7d7d7",
+  "theme_color": "#fbbdb0",
+  "background_color": "#e4e4e4",
   "display": "standalone"
 }
