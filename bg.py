@@ -190,12 +190,22 @@ def load_img_from_excel():
             with Image.open(img_path) as img:
                 webp_path = img_path.rsplit('.', 1)[0] + '.webp'
                 w, h = img.size
-                new_h = 400
-                new_w = int(w * (new_h / h))
+                img_max_side = 500
+
+                # Resize based on the larger dimension to cap the image to img_max_side
+                if h >= w:
+                    # height is larger or equal: cap height
+                    new_h = img_max_side
+                    new_w = max(1, int(w * (new_h / h)))
+                else:
+                    # width is larger: cap width
+                    new_w = img_max_side
+                    new_h = max(1, int(h * (new_w / w)))
+
                 img = img.resize((new_w, new_h))
-                img.convert('RGB').save(webp_path, format='WEBP', quality=80, method=6)
+                img.convert('RGB').save(webp_path, format='WEBP', lossless=False, quality=90, method=6)
                 os.remove(img_path)  # Remove original PNG
-                print(f"Converted {img_file} to {webp_path}")
+                print(f"Converted {img_file} to {webp_path} og w,h = {w}x{h} -> {new_w}x{new_h}")
     
 
     # Swap: clear cur and copy tmp -> cur (minimizes downtime)
