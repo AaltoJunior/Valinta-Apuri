@@ -127,14 +127,14 @@ body::before {
 .päivä {
     background: #f9f9f9;
     padding: 5px;
-    margin-left: 10px;
+    margin-right: 5px;
     border-radius: 5px;
 }
 
 .taso {
     background: #f9f9f9;
     padding: 5px;
-    margin-left: 10px;
+    margin-right: 5px;
     border-radius: 5px;
 }
 
@@ -142,7 +142,7 @@ body::before {
     background: #84754E;
     color: white;
     padding: 5px;
-    margin-left: 10px;
+    margin-right: 5px;
     border-radius: 5px;
 }
 
@@ -160,12 +160,12 @@ body::before {
 .kategoria {
     background: #f9f9f9;
     padding: 5px;
-    margin-right: 10px;
+    margin-right: 5px;
     border-radius: 5px;
 }
 
-.kategoria-otsikko {
-    margin-right: 10px;
+.row-otsikko {
+    margin-right: 5px;
 }
 
 input[type="checkbox"] {

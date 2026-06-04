@@ -3,7 +3,7 @@
     <img src="{{ static_url('img_cur/' ~ i[0] ~ '.webp') }}" alt="{{ i[1] }} työpajan kuvituskuva." class="kortti-img" loading="lazy" />
     <p class="description">{{ i[2] }}</p>
     <div class="row">
-        <p>Päivät:</p>
+        <p class="row-otsikko">Päivät:</p>
         {% for x in i[3] %}
                 <p class="päivä">{{ x }}</p>
         {% endfor %}
@@ -11,12 +11,12 @@
 
 
     <div class="row">
-        <p>Opintokäynti:</p>
+        <p class="row-otsikko">Opintokäynti:</p>
         <p class="loc {{ i[6] }}">{{ i[6] }}</p>
     </div>
 
     <div class="row">
-        <p>Luokka:</p>
+        <p class="row-otsikko">Luokka:</p>
         {% for x in i[4] %}
 
         {% if x == 10 %}
@@ -28,7 +28,7 @@
         {% endfor %}
     </div>
     <div class="row">
-        <p class="kategoria-otsikko">Kategoria:</p>
+        <p class="row-otsikko">Kategoria:</p>
         {% for x in i[5] %}
             <p class="kategoria">{{ x }}</p>
         {% endfor %}
