@@ -288,6 +288,10 @@ a {
     text-decoration: none;
 }
 
+p {
+    line-height: 19px;
+}
+
 #error-main {
     display: flex;
     justify-content: center;
