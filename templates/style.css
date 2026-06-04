@@ -157,8 +157,12 @@ body::before {
 .kategoria {
     background: #f9f9f9;
     padding: 5px;
-    margin-left: 10px;
+    margin-right: 10px;
     border-radius: 5px;
+}
+
+.kategoria-otsikko {
+    margin-right: 10px;
 }
 
 input[type="checkbox"] {
