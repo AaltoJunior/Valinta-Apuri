@@ -64,16 +64,19 @@
 
 .kortti-img {
     width: 100%;
-    max-height: 250px;
+    height: 250px;
+    overflow: hidden;
     object-fit: cover;
 }
 
 .description {
     display: -webkit-box;
-    -webkit-line-clamp: 8;
+    -webkit-line-clamp: 7;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    height: 152px;
+    height: 133px;
+    margin-bottom: 10px;
+    margin-top: 10px;
 }
 
 body {
