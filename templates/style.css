@@ -58,6 +58,10 @@
     margin-bottom: 10px;
 }
 
+.kortti-empty h2 {
+    height: 116px;
+}
+
 .kortti.kortti-empty {
     min-height: 350px;
 }
@@ -334,6 +338,24 @@ p {
         height: auto;
         justify-content: center;
         align-items: center;
+    }
+}
+
+
+@media (max-width: 1307px) {
+    .form {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+    }
+
+    .submit-container {
+        height: 60px;
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        justify-content: center;
+        flex-wrap: nowrap;
     }
 }
 
