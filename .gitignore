@@ -8,3 +8,9 @@ __pycache__/
 *.pem
 *.key
 *.crt
+certs/
+*.tar
+*.pkl
+*.xlsx
+dp/*
+dp/d.xlsx

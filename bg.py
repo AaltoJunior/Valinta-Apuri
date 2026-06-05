@@ -208,10 +208,16 @@ def load_img_from_excel():
                 print(f"Converted {img_file} to {webp_path} og w,h = {w}x{h} -> {new_w}x{new_h}")
     
 
-    # Swap: clear cur and copy tmp -> cur (minimizes downtime)
+    # Swap: clear existing files in cur and copy tmp -> cur.
+    # `cur_folder` is a bind-mounted directory in Docker, so deleting the directory
+    # itself can fail with EBUSY. Clearing contents in place avoids touching the mountpoint.
     if os.path.exists(cur_folder):
-        shutil.rmtree(cur_folder)
-    shutil.copytree(tmp_folder, cur_folder)
+        for entry in os.scandir(cur_folder):
+            if entry.is_dir(follow_symlinks=False):
+                shutil.rmtree(entry.path)
+            else:
+                os.unlink(entry.path)
+    shutil.copytree(tmp_folder, cur_folder, dirs_exist_ok=True)
 
     print("✅ Pictures reloaded successfully!")
     

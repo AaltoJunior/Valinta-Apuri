@@ -30,6 +30,70 @@ DRIVE_ID = ""
 
 Nämä voivat olla .env tiedostossa kehittämistä varten. Jos `ENV = "prudction` ei ole määritelty luetaan muuttujat .env tiedostosta.
 
+### Docker
+
+Yksi Docker-kontti riittää tähän projektiin. Kontti käynnistää ensin [bg.py](bg.py), joka hakee ja prosessoi datan, ja sen jälkeen Gunicornin, joka ajaa [app.py](app.py):n HTTPS:n yli.
+
+Toiminta menee käytännössä näin:
+
+1. bg.py kirjoittaa väliaikaiset tiedostot `tmp/data.pkl` ja `tmp/categories.pkl`.
+2. app.py odottaa näitä tiedostoja käynnistyksessä.
+3. Kun tiedostot ovat olemassa, Gunicorn käynnistyy ja alkaa palvella portissa 8443.
+4. HTTPS-sertifikaatit annetaan kontille volume-mountina kansiosta `./certs`.
+5. Portti 80 vastaa pelkällä 301-uudelleenohjauksella HTTPS:ään.
+
+Mukana olevat Docker-tiedostot:
+
+1. [Dockerfile](Dockerfile)
+2. [docker-entrypoint.sh](docker-entrypoint.sh)
+3. [docker-compose.yml](docker-compose.yml)
+
+Esimerkkikäyttö:
+
+```bash
+docker compose up --build -d
+```
+
+Tarvitset ennen käynnistystä ympäristömuuttujat `CLIENT_ID`, `CLIENT_SECRET`, `TENANT_ID` ja `DRIVE_ID`, sekä sertifikaatit `certs/cert.pem` ja `certs/key.pem`.
+
+
+Paikallinen build ja vienti:
+
+```bash
+docker build -t valinta-apuri:latest .
+docker save valinta-apuri:latest -o valinta-apuri.tar
+```
+
+Siirto serverille ja lataus siellä:
+
+```bash
+docker load -i /tmp/valinta-apuri.tar
+```
+
+Serverillä käytä tämän jälkeen [docker-compose.server.yml](docker-compose.server.yml):ää, joka viittaa valmiiksi ladattuun imageen eikä rakenna sitä uudelleen:
+
+```bash
+docker compose -f docker-compose.server.yml up -d
+```
+
+Tässä mallissa image sisältää vain sovelluksen ja riippuvuudet. `.env` luetaan serverin Compose-ajossa ja `certs/` mountataan serveriltä sisään, joten ne eivät päädy imageen.
+
+Jos haluat testata ilman Composea, vastaava periaate on sama: rakenna image, mounttaa data- ja cert-kansiot, ja julkaise portti 443 hostista kontin porttiin 8443.
+
+#### Kehityksen itse allekirjoitettu sertifikaatti
+
+Tätä varten käytä omaa paikallista sertifikaattia, älä tuotannon sertifikaattia.
+
+Helpoin tapa on luoda sellainen mukana tulevalla skriptillä:
+
+```bash
+sh scripts/create-dev-cert.sh
+```
+
+Se luo tiedostot `certs/cert.pem` ja `certs/key.pem`, jotka Compose mounttaa kontille. Sertifikaatti sisältää `localhost`- ja `127.0.0.1`-osoitteet, joten selain hyväksyy sen teknisesti oikeaan hostiin yhdistäessäsi. Selain silti näyttää varoituksen, koska sertifikaatti on itse allekirjoitettu.
+
+Jos haluat poistaa certit myöhemmin, riittää että poistat `certs/`-kansion sisällön ja luot sen uudelleen tarvittaessa.
+
 ### Konfigurointi ja suorittaminen
 
 Molemmat python tiedostot määritetään systemd kautta serviceiksi.

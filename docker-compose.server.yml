@@ -1,0 +1,20 @@
+services:
+  valinta-apuri:
+    image: valinta-apuri:latest
+    ports:
+      - "80:80"
+      - "443:8443"
+    environment:
+      ENV: production
+      CLIENT_ID: ${CLIENT_ID}
+      CLIENT_SECRET: ${CLIENT_SECRET}
+      TENANT_ID: ${TENANT_ID}
+      DRIVE_ID: ${DRIVE_ID}
+      TLS_CERT_FILE: /certs/cert.pem
+      TLS_KEY_FILE: /certs/key.pem
+    volumes:
+      - ./tmp:/app/tmp
+      - ./dp:/app/dp
+      - ./static/img_cur:/app/static/img_cur
+      - ./certs:/certs:ro
+    restart: unless-stopped
