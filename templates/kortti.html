@@ -33,4 +33,12 @@
             <p class="kategoria">{{ x }}</p>
         {% endfor %}
     </div>
+    {% if i[7][0] != "Nan" %}
+    <div class="row">
+        <p class="row-otsikko">Varaa kalenterista:</p>
+        {% for x in i[7] %}
+            <a class="kalenteri" href="{{ links[x] }}">{{ x }}</a>
+        {% endfor %}
+    </div>
+    {% endif %}
 </div>

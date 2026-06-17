@@ -6,6 +6,7 @@ services:
       - "443:8443"
     environment:
       ENV: production
+      TZ: Europe/Helsinki
       CLIENT_ID: ${CLIENT_ID}
       CLIENT_SECRET: ${CLIENT_SECRET}
       TENANT_ID: ${TENANT_ID}
@@ -13,8 +14,5 @@ services:
       TLS_CERT_FILE: /certs/cert.pem
       TLS_KEY_FILE: /certs/key.pem
     volumes:
-      - ./tmp:/app/tmp
-      - ./dp:/app/dp
-      - ./static/img_cur:/app/static/img_cur
       - ./certs:/certs:ro
     restart: unless-stopped

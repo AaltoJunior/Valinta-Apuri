@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 from dotenv import load_dotenv
 import os
+import json
 
 from termcolor import colored
 
@@ -20,18 +21,35 @@ import os
 from time import sleep
 from pathlib import Path
 
+import redis
+import pickle
+
 
 
 def data_update_loop():
     # This function runs in a separate thread and periodically checks if the data files have been updated.
     global time_old
+    
+    try:
+        r = redis.Redis(
+            host=os.getenv("REDIS_HOST", "redis"),
+            port=6379,
+            decode_responses=False
+        )
+    except Exception as e:
+        print(f"❌ Redis connection failed in data_update_loop: {e}")
+        return
+    
     while True:
-        global df, categories
-        time_new = os.path.getmtime("./tmp/data.pkl")
+        global df, categories, last_seen, links
+        time_new = float(r.get("updated_at"))
         if time_new > time_old:
-            print("Changes detected in data.pkl, reloading...")
-            df = pd.read_pickle("./tmp/data.pkl")
-            cat = pd.read_pickle("./tmp/categories.pkl")
+            print("Changes detected in data, reloading...")
+            # df = pd.read_pickle("./tmp/data.pkl")
+            # cat = pd.read_pickle("./tmp/categories.pkl")
+            df = pickle.loads(r.get("data"))
+            cat = pickle.loads(r.get("categories"))
+            links = json.loads(r.get("links"))
             categories = cat.tolist()
             time_old = time_new
             data_loaded.set()
@@ -39,14 +57,25 @@ def data_update_loop():
 
 
 
-# Wait until both files exist
-while not (Path("./tmp/data.pkl").exists() and Path("./tmp/categories.pkl").exists()):
-    print("Waiting for data files to be created...")
+# Wait until data in redis is available before starting the Flask app
+r = redis.Redis(
+    host=os.getenv("REDIS_HOST", "redis"),
+    port=6379,
+    decode_responses=False
+)
+
+print("Waiting for Redis data...")
+
+while True:
+    if r.get("data") and r.get("categories") and r.get("links"):
+        print("Redis data available — starting app")
+        break
     time.sleep(1)
 
 
 df = pd.DataFrame()  # Placeholder until we load real data
 categories = [] # Placeholder until we load real data
+links = {} # Placeholder until we load real data
 
 # Start the polling in a separate thread so it doesn't block the Flask app
 time_old = 0 # Initialize to 0 so the first check will always load the data
@@ -60,6 +89,14 @@ data_loaded.wait(timeout=5)  # Wait until the initial data is loaded before star
 app = Flask(__name__)
 htmx = HTMX(app) # Enable HTMX support in the Flask app
 Compress(app) # Enable gzip compression for responses
+
+def is_nan(value):
+    try:
+        return np.isnan(value)
+    except (TypeError, ValueError):
+        return False
+
+app.jinja_env.tests['nan'] = is_nan
 
 @app.route('/', methods=['GET'])
 def index():
@@ -79,6 +116,8 @@ def index():
       'index.html',
       categories=categories,
       rowItems=df_filtered.itertuples(name=None),
+      links=links,
+      last_updated=get_last_updated()
       )
     
 @app.route("/submit", methods=["POST"])
@@ -142,7 +181,8 @@ def submit():
         rowItems=df_filtered.itertuples(name=None),
         categories=categories,
         locations=df['Location'].unique(),
-        last_updated=get_last_updated()
+        last_updated=get_last_updated(),
+        links=links
         )
 
 # Route to get all data in a simple table format (used for debugging and testing) disabled by default

@@ -44,7 +44,7 @@
 
 .kortti {
     width: 380px;
-    min-height: 684.5px;
+    min-height: 720px;
     border-radius: 8px;
     padding: 20px;
     margin: 20px;
@@ -166,6 +166,14 @@ body::before {
     padding: 5px;
     margin-right: 5px;
     border-radius: 5px;
+}
+
+.kalenteri {
+    background: #f9f9f9;
+    padding: 5px;
+    margin-right: 5px;
+    border-radius: 5px;
+    text-decoration: underline;
 }
 
 .row-otsikko {

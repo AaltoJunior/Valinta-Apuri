@@ -11,10 +11,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . ./
 
-RUN chmod +x /app/docker-entrypoint.sh \
-    && mkdir -p /app/tmp /app/dp /app/static/img_cur
+RUN mkdir -p /app/tmp /app/dp /app/static/img_cur
 
 EXPOSE 80
 EXPOSE 8443
-
-ENTRYPOINT ["/app/docker-entrypoint.sh"]

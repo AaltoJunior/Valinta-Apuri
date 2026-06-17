@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 from dotenv import load_dotenv
 import os
+import json
 
 import hashlib
 import hmac
@@ -28,6 +29,9 @@ from time import sleep
 from PIL import Image
 import filetype
 
+import redis
+import pickle
+import time
 
 
 # If not in production, load .env for development. In production, we expect environment variables from systemd.
@@ -59,10 +63,10 @@ def get_token():
         scopes=["https://graph.microsoft.com/.default"]
     ).get("access_token")
 
-def download_file():
+def download_file(file, output):
     headers = {"Authorization": f"Bearer {get_token()}"}
     r = requests.get(
-        f"https://graph.microsoft.com/v1.0/drives/{DRIVE_ID}/root:/{FILE_PATH}",
+        f"https://graph.microsoft.com/v1.0/drives/{DRIVE_ID}/root:/{file}",
         headers=headers
     )
     if r.status_code != 200:
@@ -71,9 +75,9 @@ def download_file():
     download_url = r.json()["@microsoft.graph.downloadUrl"]
     r = requests.get(download_url)
     if r.status_code == 200:
-        with open(OUTPUT_FILE, "wb") as f:
+        with open(output, "wb") as f:
             f.write(r.content)
-        print(f"✅ Downloaded '{OUTPUT_FILE}' ({len(r.content):,} bytes)")
+        print(f"✅ Downloaded '{output}' ({len(r.content):,} bytes)")
 
 def get_last_modified():
     headers = {"Authorization": f"Bearer {get_token()}"}
@@ -115,6 +119,20 @@ def strip_list(items):
         out.append(s)
     return out
 
+def strip_list_title(items):
+    """Trim whitespace for each item and normalize capitalization.
+
+    This makes the first character uppercase and the rest lowercase (e.g. "ma" -> "Ma").
+    It is used for columns like `Days` and `Category` so values match the UI labels.
+    """
+    out = []
+    for item in items:
+        s = str(item).strip()
+        if s:
+            s = s.title()
+        out.append(s)
+    return out
+
 def to_int_list(items):
     return [int(item.strip()) for item in items if item.strip().isdigit()]
 
@@ -140,6 +158,11 @@ def load_and_process_excel(file_path='dp/d.xlsx'):
     if 'Level' in df.columns:
         df['Level'] = df['Level'].astype(str).str.split(',')
         df['Level'] = df['Level'].apply(to_int_list)
+        
+    if "Calendar" in df.columns:
+        # df["Calendar"] = df["Calendar"].replace('', np.nan)
+        df["Calendar"] = df["Calendar"].astype(str).str.split(',')
+        df["Calendar"] = df["Calendar"].apply(strip_list_title)
 
     df['Category'] = df['Category'].replace('', np.nan)
     df['Location'] = df['Location'].replace('', np.nan)
@@ -157,6 +180,14 @@ def load_and_process_excel(file_path='dp/d.xlsx'):
     
     
     return df, pd.Series(sorted(categories))
+
+
+def load_and_process_links(file_path='dp/links.xlsx'):
+    dfl = pd.read_excel(file_path, header=0)
+        
+    if "Calendar" in dfl.columns:
+        dfl["Calendar"] = dfl["Calendar"].apply(lambda x: x.title() if isinstance(x, str) else x)
+    return dfl
 
 def load_img_from_excel():
     tmp_folder = "static/img_tmp"
@@ -225,8 +256,18 @@ def load_img_from_excel():
 def poller():
     print("🚀 Starting poller")
 
+    try:
+        r = redis.Redis(
+            host=os.getenv("REDIS_HOST", "redis"),
+            port=6379,
+            decode_responses=False
+        )
+    except Exception as e:
+        print(f"❌ Redis connection failed: {e}")
+        return
     
     last_hash = "asdasdasd" # Dummy initial value to ensure the first check triggers a download
+    
     
 
     while True:
@@ -238,18 +279,26 @@ def poller():
         if current_hash and current_hash != last_hash:
             print(f"🔔 Hash changed! Downloading...")
             try:
-                download_file()
+                download_file(FILE_PATH, OUTPUT_FILE)
                 last_hash = current_hash
                 print(f"Download successful, updated hash: {last_hash}")
+                download_file("Valinta-apuri/links.xlsx", "dp/links.xlsx")
             except Exception as e:
                 print(f"❌ Download failed: {e}")
                 continue
             
             try:
                 df, categories = load_and_process_excel()
+                dfl = load_and_process_links()
+                links = dfl.set_index('Calendar')['URL'].to_dict()
                 print(f"✅ Excel data reloaded successfully!")
-                df.to_pickle("./tmp/data.pkl")
-                categories.to_pickle("./tmp/categories.pkl")
+                # df.to_pickle("./tmp/data.pkl")
+                # categories.to_pickle("./tmp/categories.pkl") 
+                r.set("data", pickle.dumps(df))
+                r.set("categories", pickle.dumps(categories))
+                r.set("updated_at", time.time())
+                r.set("links", json.dumps(links))
+                
             except Exception as e:
                 print(f"❌ Excel processing failed: {e}")
                 continue

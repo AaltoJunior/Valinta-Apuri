@@ -41,6 +41,7 @@ Toiminta menee käytännössä näin:
 3. Kun tiedostot ovat olemassa, Gunicorn käynnistyy ja alkaa palvella portissa 8443.
 4. HTTPS-sertifikaatit annetaan kontille volume-mountina kansiosta `./certs`.
 5. Portti 80 vastaa pelkällä 301-uudelleenohjauksella HTTPS:ään.
+6. `tmp`, `dp` ja `static/img_cur` eivät ole bind-mountattuja hostilta, vaan ne elävät containerin writable layerissa, jotta ne eivät täytä pientä host-partitiota.
 
 Mukana olevat Docker-tiedostot:
 
@@ -67,7 +68,7 @@ docker save valinta-apuri:latest -o valinta-apuri.tar
 Siirto serverille ja lataus siellä:
 
 ```bash
-docker load -i /tmp/valinta-apuri.tar
+docker load -i valinta-apuri.tar
 ```
 
 Serverillä käytä tämän jälkeen [docker-compose.server.yml](docker-compose.server.yml):ää, joka viittaa valmiiksi ladattuun imageen eikä rakenna sitä uudelleen:
@@ -76,7 +77,19 @@ Serverillä käytä tämän jälkeen [docker-compose.server.yml](docker-compose.
 docker compose -f docker-compose.server.yml up -d
 ```
 
-Tässä mallissa image sisältää vain sovelluksen ja riippuvuudet. `.env` luetaan serverin Compose-ajossa ja `certs/` mountataan serveriltä sisään, joten ne eivät päädy imageen.
+Huom jos olet esim M sarjan prosessoria käyttävällä macillä (arm suoritin) pitää buildata erikseen palvelimen amd64 prosessori arkkitehttuurille:
+
+```bash
+docker buildx create --use
+docker buildx build --platform linux/amd64 -t valinta-apuri:latest --load 
+docker save valinta-apuri:latest -o valinta-apuri-amd64.tar
+```
+
+```bash
+docker load -i valinta-apuri-amd64.tar
+```
+
+Tässä mallissa image sisältää vain sovelluksen ja riippuvuudet. `.env` luetaan serverin Compose-ajossa ja `certs/` mountataan serveriltä sisään, joten ne eivät päädy imageen. Myös `tmp`, `dp` ja `static/img_cur` pysyvät containerin sisällä, joten ne eivät käytä serverin pientä bind-mount-levytilaa.
 
 Jos haluat testata ilman Composea, vastaava periaate on sama: rakenna image, mounttaa data- ja cert-kansiot, ja julkaise portti 443 hostista kontin porttiin 8443.
 

@@ -3,6 +3,8 @@
 *.log
 static/img_tmp/*
 !static/img_tmp/.gitkeep
+static/img_cur/*
+!static/img_cur/.gitkeep
 __pycache__/
 .vscode/
 *.pem
@@ -10,7 +12,10 @@ __pycache__/
 *.crt
 certs/
 *.tar
+*.tar.gz
+*.zip
 *.pkl
 *.xlsx
 dp/*
 dp/d.xlsx
+
