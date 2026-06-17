@@ -1,5 +1,5 @@
 from flask import (Flask, redirect, render_template, request,
-                   send_from_directory, url_for, abort, Response)
+                   send_from_directory, url_for, abort, make_response, Response)
 from flask_compress import Compress
 from flask_htmx import HTMX
 
@@ -101,24 +101,31 @@ app.jinja_env.tests['nan'] = is_nan
 @app.route('/', methods=['GET'])
 def index():
     global tieme_old
-    # Serve early hints for preloading critical assets like .css and fonts
+
+    hints = [
+        ('Link', f'<{static_url("style.css")}>; rel=preload; as=style'),
+        ('Link', f'<{static_url("BwGradual-Regular.woff2")}>; rel=preload; as=font; crossorigin'),
+        ('Link', f'<{static_url("BG.webp")}>; rel=preload; as=image'),
+    ]
+
     if 'wsgi.early_hints' in request.environ:
-        request.environ['wsgi.early_hints']([
-            ('Link', f'<{static_url("style.css")}>; rel=preload; as=style'),
-            ('Link', f'<{static_url("BwGradual-Regular.woff2")}>; rel=preload; as=font; crossorigin'),
-            ('Link', f'<{static_url("BG.webp")}>; rel=preload; as=image'),
-    ])
-    
+        request.environ['wsgi.early_hints'](hints)
+
     df_filtered = df.copy()
     df_filtered = df_filtered.sort_values(by=["Workshop"])
-    
-    return render_template(
-      'index.html',
-      categories=categories,
-      rowItems=df_filtered.itertuples(name=None),
-      links=links,
-      last_updated=get_last_updated()
-      )
+
+    response = make_response(render_template(
+        'index.html',
+        categories=categories,
+        rowItems=df_filtered.itertuples(name=None),
+        links=links,
+        last_updated=get_last_updated()
+    ))
+
+    for name, value in hints:
+        response.headers.add(name, value)
+
+    return response
     
 @app.route("/submit", methods=["POST"])
 def submit():
