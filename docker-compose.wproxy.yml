@@ -1,0 +1,75 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: valina-redis
+    restart: unless-stopped
+    networks:
+      - internal
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: valinta-caddy
+    restart: unless-stopped
+    depends_on:
+      - web
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./certs:/etc/caddy/certs:ro
+      - caddy_data:/data
+      - caddy_logs:/var/log/caddy
+    networks:
+      - internal
+
+  web:
+    image: valinta-apuri:latest
+    container_name: valinta-web
+    restart: unless-stopped
+    depends_on:
+      - redis
+    environment:
+      ENV: production
+      TZ: Europe/Helsinki
+      REDIS_HOST: redis
+    volumes:
+      - img_data:/app/static/img_cur
+    command: >
+      gunicorn app:app
+      --worker-class gthread
+      --threads 4
+      --workers 2
+      --bind 0.0.0.0:8000
+      --error-logfile -
+    networks:
+      - internal
+
+  bg:
+    image: valinta-apuri:latest
+    container_name: valinta-bg
+    restart: unless-stopped
+    depends_on:
+      - redis
+    environment:
+      ENV: production
+      TZ: Europe/Helsinki
+      REDIS_HOST: redis
+      CLIENT_ID: ${CLIENT_ID}
+      CLIENT_SECRET: ${CLIENT_SECRET}
+      TENANT_ID: ${TENANT_ID}
+      DRIVE_ID: ${DRIVE_ID}
+    volumes:
+      - img_data:/app/static/img_cur
+    command: python3.12 bg.py
+    networks:
+      - internal
+
+volumes:
+  img_data:
+  caddy_data:
+  caddy_logs:
+
+networks:
+  internal:
+    driver: bridge

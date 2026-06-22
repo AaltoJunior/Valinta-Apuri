@@ -3,6 +3,9 @@ from flask import (Flask, redirect, render_template, request,
 from flask_compress import Compress
 from flask_htmx import HTMX
 
+from werkzeug.middleware.proxy_fix import ProxyFix
+
+
 import pandas as pd
 import numpy as np
 from dotenv import load_dotenv
@@ -89,6 +92,9 @@ data_loaded.wait(timeout=5)  # Wait until the initial data is loaded before star
 app = Flask(__name__)
 htmx = HTMX(app) # Enable HTMX support in the Flask app
 Compress(app) # Enable gzip compression for responses
+
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+
 
 def is_nan(value):
     try:
