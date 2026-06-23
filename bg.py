@@ -28,6 +28,8 @@ from time import sleep
 
 from PIL import Image
 import filetype
+import piexif
+import piexif.helper
 
 import redis
 import pickle
@@ -233,8 +235,25 @@ def load_img_from_excel():
                     new_w = img_max_side
                     new_h = max(1, int(h * (new_w / w)))
 
-                img = img.resize((new_w, new_h))
-                img.convert('RGB').save(webp_path, format='WEBP', lossless=False, quality=90, method=6)
+                # Fresh EXIF with only our UserComment — no old data
+                exif_dict = {"0th": {}, "Exif": {}, "1st": {}, "GPS": {}}
+                exif_dict["Exif"][piexif.ExifIFD.UserComment] = piexif.helper.UserComment.dump(
+                    json.dumps({
+                        "ow": w,
+                        "oh": h,
+                        "of": img.format,  # 'PNG' or 'JPEG'
+                    })
+                )
+
+                img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+                img.convert('RGB').save(
+                    webp_path,
+                    format='WEBP',
+                    exif=piexif.dump(exif_dict),
+                    lossless=False,
+                    quality=90,
+                    method=6
+                )
                 os.remove(img_path)  # Remove original PNG
                 print(f"Converted {img_file} to {webp_path} og w,h = {w}x{h} -> {new_w}x{new_h}")
     
