@@ -127,11 +127,12 @@ def strip_list_title(items):
     This makes the first character uppercase and the rest lowercase (e.g. "ma" -> "Ma").
     It is used for columns like `Days` and `Category` so values match the UI labels.
     """
+    # TODO: make the logic cleaner and in one place. The list element is also controlled via labda function in load_and_process_excel, so we can probably remove this function entirely.
     out = []
     for item in items:
         s = str(item).strip()
         if s:
-            s = s.title()
+            s = s.strip() # Changed from .title() to .strip() to preserve original capitalization
         out.append(s)
     return out
 
