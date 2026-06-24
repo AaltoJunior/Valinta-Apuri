@@ -188,7 +188,7 @@ def load_and_process_links(file_path='dp/links.xlsx'):
     dfl = pd.read_excel(file_path, header=0)
         
     if "Calendar" in dfl.columns:
-        dfl["Calendar"] = dfl["Calendar"].apply(lambda x: x.title() if isinstance(x, str) else x)
+        dfl["Calendar"] = dfl["Calendar"].apply(lambda x: x.strip() if isinstance(x, str) else x)
     return dfl
 
 def load_img_from_excel():
