@@ -1,7 +1,7 @@
 # Aalto-yliopisto Junior Valinta-apuri
 
 > [!WARNING]
-> Valinta-apuri projekti on vielä kehitteillä eikä ole valmis laajaan käyttöön!
+> Valinta-apuri projekti on vielä kehitteillä. Menossa on koevaihe ja Valinta-apuriin tehdään vielä korjauksia, parannuksia ja muutoksia!
 
 ## Valinta-apuri?
 
@@ -17,85 +17,57 @@ Aalto-yliopisto Junior Valinta-apuriin pääset [tästä](https://)!
 
 ### Rakenne
 
-Perustuu kahteen pyhon tiedostoon. [bg.py](/bg.py) on taustalla toimiva dataa päivittävä prosessi joka kommunikoi sharepointin kanssa. [app.py](/app.py) on itse palvein yhdessä [Gunicor](https://gunicorn.org/) WSGI palvelimen kanssa.
+Perustuu kahteen python tiedostoon. [bg.py](/bg.py) on taustalla toimiva dataa päivittävä prosessi joka kommunikoi sharepointin kanssa. [app.py](/app.py) on itse palvelin yhdessä [Gunicorn](https://gunicorn.org/) WSGI palvelimen kanssa.
 
-Taustaprosessi tarvitsee environmet variableja autentikaatioon MS Graphin kanssa ladatatakseen tiedostot teamssista.
-
-``` sh
-CLIENT_ID = ""
-CLIENT_SECRET = ""
-TENANT_ID = ""
-DRIVE_ID = ""
-```
-
-Nämä voivat olla .env tiedostossa kehittämistä varten. Jos `ENV = "prudction` ei ole määritelty luetaan muuttujat .env tiedostosta.
+Taustaprosessi tarvitsee environment variableja autentikaatioon MS Graphin kanssa ladatatakseen tiedostot sharepointista.
 
 ### Docker
 
-Yksi Docker-kontti riittää tähän projektiin. Kontti käynnistää ensin [bg.py](bg.py), joka hakee ja prosessoi datan, ja sen jälkeen Gunicornin, joka ajaa [app.py](app.py):n HTTPS:n yli.
+Projekti toimii yhdellä Docker composella. Compose käynnistää ensin [bg.py](bg.py), joka hakee ja prosessoi datan, ja sen jälkeen Gunicornin, joka ajaa [app.py](app.py):n HTTP:n yli. Compose käynnistää myös Rediksen, joka tuo dataa taustaprosessista varsinaiselle palvelinprosessille. Composessa on myös Caddy reverse proxy, johon HTTPS liikenteen hallinta on siirretty. Caddyn ei tarvitse välttämättä olla samassa composessa, mutta tämän projektin yksinkertaisuuden vuoksi se on sinne lisätty.
 
 Toiminta menee käytännössä näin:
 
-1. bg.py kirjoittaa väliaikaiset tiedostot `tmp/data.pkl` ja `tmp/categories.pkl`.
-2. app.py odottaa näitä tiedostoja käynnistyksessä.
-3. Kun tiedostot ovat olemassa, Gunicorn käynnistyy ja alkaa palvella portissa 8443.
-4. HTTPS-sertifikaatit annetaan kontille volume-mountina kansiosta `./certs`.
-5. Portti 80 vastaa pelkällä 301-uudelleenohjauksella HTTPS:ään.
-6. `tmp`, `dp` ja `static/img_cur` eivät ole bind-mountattuja hostilta, vaan ne elävät containerin writable layerissa, jotta ne eivät täytä pientä host-partitiota.
+1. bg.py lukee sharepointista dataa (Excel tiedosto).
+2. Tämän datan bg käsittelee ja siirtää Redikseen. Bg myös lukee ja kompressoi kuvat ja tallentaa nämä.
+3. app.py Lukee rediksestä tiedot ja levylle tallennetut kuvat.
+4. app tarjoilee gunicornin kanssa HTTP liikennettä Caddylle
+5. Caddy tarjoaa tämän eteenpäin HTTPS liikenteenä.
 
 Mukana olevat Docker-tiedostot:
 
 1. [Dockerfile](Dockerfile)
-2. [docker-entrypoint.sh](docker-entrypoint.sh)
-3. [docker-compose.yml](docker-compose.yml)
+2. [docker-compose.yml](docker-compose.yml) testaus/dev tiedosto. Tämä ei käytä caddyä ja sisältää lyhyen python skriptin HTTP liikenteen siirtämiseen HTTPS puolelle.
+3. [docker-compose.wproxy.yml](docker-compose.wproxy.yml) varsinainen dockerin compose tiedosto jossa on caddy mukana.
 
 Esimerkkikäyttö:
 
 ```bash
-docker compose up --build -d
+docker compose -f docker-compose.wproxy.yml up --build -d
+docker compose -f docker-compose.yml up --build -d
+
 ```
 
 Tarvitset ennen käynnistystä ympäristömuuttujat `CLIENT_ID`, `CLIENT_SECRET`, `TENANT_ID` ja `DRIVE_ID`, sekä sertifikaatit `certs/cert.pem` ja `certs/key.pem`.
 
-
-Paikallinen build ja vienti:
+Paikallinen build (käyttäen buildx) ja vienti:
 
 ```bash
-docker build -t valinta-apuri:latest .
+docker buildx build --platform linux/amd64 -t valinta-apuri:latest --load .
 docker save valinta-apuri:latest -o valinta-apuri.tar
+gzip valinta-apuri.tar
 ```
 
-Siirto serverille ja lataus siellä:
+Siirrä palvelimelle valinta-apuri.tar, docker-compose.wproxy.yml ja /certs/*. Tämän jälkeen voidaan ladata kontti ja käyttää sitä.
 
 ```bash
-docker load -i valinta-apuri.tar
+gunzip valinta-apuri.tar.gz
+sudo docker load -i valinta-apuri.tar
+sudo docker compose -f docker-compose.wproxy.yml up -d
 ```
-
-Serverillä käytä tämän jälkeen [docker-compose.server.yml](docker-compose.server.yml):ää, joka viittaa valmiiksi ladattuun imageen eikä rakenna sitä uudelleen:
-
-```bash
-docker compose -f docker-compose.server.yml up -d
-```
-
-Huom jos olet esim M sarjan prosessoria käyttävällä macillä (arm suoritin) pitää buildata erikseen palvelimen amd64 prosessori arkkitehttuurille:
-
-```bash
-docker buildx create --use
-docker buildx build --platform linux/amd64 -t valinta-apuri:latest --load 
-docker save valinta-apuri:latest -o valinta-apuri-amd64.tar
-```
-
-```bash
-docker load -i valinta-apuri-amd64.tar
-```
-
-Tässä mallissa image sisältää vain sovelluksen ja riippuvuudet. `.env` luetaan serverin Compose-ajossa ja `certs/` mountataan serveriltä sisään, joten ne eivät päädy imageen. Myös `tmp`, `dp` ja `static/img_cur` pysyvät containerin sisällä, joten ne eivät käytä serverin pientä bind-mount-levytilaa.
-
-Jos haluat testata ilman Composea, vastaava periaate on sama: rakenna image, mounttaa data- ja cert-kansiot, ja julkaise portti 443 hostista kontin porttiin 8443.
 
 #### Kehityksen itse allekirjoitettu sertifikaatti
 
-Tätä varten käytä omaa paikallista sertifikaattia, älä tuotannon sertifikaattia.
+Devausta varten käytä omaa paikallista sertifikaattia, älä tuotannon sertifikaattia.
 
 Helpoin tapa on luoda sellainen mukana tulevalla skriptillä:
 
@@ -107,170 +79,55 @@ Se luo tiedostot `certs/cert.pem` ja `certs/key.pem`, jotka Compose mounttaa kon
 
 Jos haluat poistaa certit myöhemmin, riittää että poistat `certs/`-kansion sisällön ja luot sen uudelleen tarvittaessa.
 
-### Konfigurointi ja suorittaminen
+### Konfigurointi
 
-Molemmat python tiedostot määritetään systemd kautta serviceiksi.
+Konfigurointi tapahtuu kahden tiedoston kautta: .env ja /caddy/Caddyfile. Näitä kumpaakaan ei ole repositoryssä mukana.
 
-Ennnen kun prosesseja voidaan suorittaa tätytyy asetaa vaatimukset:
-
-```bash
-pip3.12 install -r requirements.txt
-```
-
-Luodaan taustaprosessin tiedosto:
-
-```bash
-sudo nano /etc/systemd/system/bg.service
-```
-
-bg.service tiedoston sisältö:
+**.env** tiedostossa määritetään lähinnä bg:n käyttämiä tietoja sharepointtia varten.
 
 ```ini
-[Unit]
-Description=Valita-apuri Background Data Updater
-After=network.target
-
-[Service]
-Type=simple
-User=youruser
-WorkingDirectory=/home/youruser/Valinta-apuri
-
-Environment="ENV=production"
-Environment="CLIENT_ID="
-Environment="CLIENT_SECRET="
-Environment="TENANT_ID="
-Environment="DRIVE_ID="
-
-ExecStart=/usr/bin/python3.12 -u bg.py
-
-Restart=always
-RestartSec=5
-
-StandardOutput=journal
-StandardError=journal
-
-[Install]
-WantedBy=multi-user.target
+ENV = "production"
+CLIENT_ID = "..."
+CLIENT_SECRET = "..."
+TENANT_ID = "..."
+DRIVE_ID = "..."
 ```
 
-Luodaan palvelinprosessin tiedosto:
+**/caddy/Caddyfile** tiedostossa määritetään Caddyn reverse proxyn asetukset ja myös HTTP -> HTTPS.
+
+```nginx
+{
+    auto_https off
+}
+
+http://yourdomain.domain.com {
+    redir https://yourdomain.domain.com{uri} 301
+}
+
+https://yourdomain.domain.com {
+    tls /etc/caddy/certs/cert.pem /etc/caddy/certs/key.pem
+
+    log {
+        output file /var/log/caddy/access.log
+        format json
+    }
+
+    reverse_proxy web:8000 {
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+}
+```
+
+### Lokitiedot
+
+Lokitietoja voi tarkastella alla olevilla komennoilla. Ensimmäinen komento antaa docker projektin elementit ja siitä SERVICE sarakkeesta voidaan katsoa xxx kohtaan laitettava tunnus. Toinen komento antaa lokitiedot 10h ajalta ja kolmas komento tarkastelee lokitietoja reaaliaikaisena.
 
 ```bash
-sudo nano /etc/systemd/system/gunicorn.service
-```
-
-bg.service tiedoston sisältö:
-
-```ini
-[Unit]
-Description=Valinta-apuri Gunicorn Service
-After=network.target bg.service
-Requires=bg.service
-
-[Service]
-Type=simple
-User=youruser
-WorkingDirectory=/home/youruser/Valinta-Apuri/
-
-Environment="ENV=production"
-
-ExecStart=/usr/bin/python3.12 -m gunicorn \
-    --worker-class gthread \
-    --threads 4 \
-    --workers 2 \
-    --bind 0.0.0.0:443 \
-    --certfile cert.pem \
-    --keyfile key.pem \
-    --error-logfile - \
-    --http-protocols h2,h1 \
-    app:app
-
-Restart=always
-RestartSec=5
-
-StandardOutput=journal
-StandardError=journal
-
-[Install]
-WantedBy=multi-user.target
-```
-
-HTTPS palvelinta varten tarvitaan sertifikaatti joka sisältää cert.pem ja key.pem tiedostot, sekä avoin portti 443. Portin voi avata esimerkisi:
-
-```bash
-sudo firewall-cmd --add-port=443/tcp --permanent
-sudo firewall-cmd --reload
-```
-
-Ja väliaikaisen sertifikaation voi luoda komennolla:
-
-```bash
-openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -sha256 -days 365 -nodes
-```
-
-Käynnistys:
-
-```bash
-sudo systemctl start bg.service
-sudo systemctl start gunicorn.service
-```
-
-Sammuttaminen:
-
-```bash
-sudo systemctl stop gunicorn.service
-sudo systemctl stop bg.service
-```
-
-Uudelleenkäynnistys:
-
-```bash
-sudo systemctl restart bg.service
-sudo systemctl restart gunicorn.service
-```
-
-Satuksen tarkastaminen:
-
-```bash
-systemctl status bg.service
-systemctl status gunicorn.service
-```
-
-Automaattinen käynnistys:
-
-```bash
-sudo systemctl enable bg.service
-sudo systemctl enable gunicorn.service
-```
-
-Automaattisen käynnistyksen tarkastus:
-
-```bash
-systemctl is-enabled bg.service
-systemctl is-enabled gunicorn.service
-```
-
-Muokkaaminen:
-
-```bash
-sudo nano /etc/systemd/system/bg.service
-sudo nano /etc/systemd/system/gunicorn.service
-```
-
-Jonka jälkeen:
-
-```bash
-sudo systemctl daemon-reload
-
-sudo systemctl restart bg.service
-sudo systemctl restart gunicorn.service
-```
-
-Logi tiedostojen tarkastelu:
-
-```bash
-journalctl -u bg.service -f
-journalctl -u gunicorn.service -f
+sudo docker compose ps
+sudo docker compose logs --since=10h xxx
+sudo docker compose logs -f xxx
 ```
 
 ## Todo
