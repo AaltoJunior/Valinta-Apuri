@@ -1,0 +1,36 @@
+<!-- This replaces the form (primary target) -->
+<form id="my-form" class="form" hx-post="/submit" hx-target="this" hx-swap="innerHTML">
+    {% if selected_categories %}
+        {% include 'kategoria.html' %}
+    {% if selected_levels %}
+        {% include 'aste.html' %}
+    {% if selected_days %}
+        {% include 'paiva.html' %}
+        {% include 'location.html' %}
+    {% else %}
+        {% include 'paiva-empty.html' %}
+    {% endif %}
+
+    {% else %}
+        {% include 'aste-empty.html' %}
+    {% endif %}
+
+    {% else %}
+        {% include 'kategoria-empty.html' %}
+    {% endif %}
+
+    <div class="submit-container">
+        <button type="submit" id="submit">➔</button>
+    </div>
+</form>
+
+
+<!-- This gets swapped into #results out-of-band -->
+<div id="valikoima" class="korttipakka" hx-swap-oob="true">
+    {% for i in rowItems %}
+        {% include 'kortti.html' %}
+    {% else %}
+        {% include 'kortti-empty.html' %}
+    {% endfor %}
+</div>
+

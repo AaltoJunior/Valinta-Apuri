@@ -1,9 +1,9 @@
 <div class="kortti">
-    <h2>{{ i[1] }}</h2> <!-- -->
-    <img src="{{ url_for('static', filename='img_tmp/' ~ i[0] ~ '.png') }}" class="kortti-img">
-    <p>{{ i[2] }}</p>
+    <h2>{{ i[1] }}</h2>
+    <img src="{{ static_url('img_cur/' ~ i[0] ~ '.webp') }}" alt="{{ i[1] }} työpajan kuvituskuva." class="kortti-img" loading="lazy" />
+    <p class="description">{{ i[2] }}</p>
     <div class="row">
-        <p>Päivät:</p>
+        <p class="row-otsikko">Päivät:</p>
         {% for x in i[3] %}
                 <p class="päivä">{{ x }}</p>
         {% endfor %}
@@ -11,16 +11,16 @@
 
 
     <div class="row">
-        <p>Opintokäynti:</p>
+        <p class="row-otsikko">Opintokäynti:</p>
         <p class="loc {{ i[6] }}">{{ i[6] }}</p>
     </div>
 
     <div class="row">
-        <p>Luokka:</p>
+        <p class="row-otsikko">Luokka:</p>
         {% for x in i[4] %}
 
         {% if x == 10 %}
-            <p class="taso">2. Aste</p>
+            <p class="taso">2. aste</p>
         {% else %}
             <p class="taso">{{ x }}</p>
         {% endif %}
@@ -28,9 +28,17 @@
         {% endfor %}
     </div>
     <div class="row">
-        <p>Kategoria:</p>
+        <p class="row-otsikko">Kategoria:</p>
         {% for x in i[5] %}
             <p class="kategoria">{{ x }}</p>
         {% endfor %}
     </div>
+    {% if i[7][0] != "nan" %}
+    <div class="row">
+        <p class="row-otsikko">Varaa kalenterista:</p>
+        {% for x in i[7] %}
+            <a class="kalenteri" href="{{ links[x] }}">{{ x }}</a>
+        {% endfor %}
+    </div>
+    {% endif %}
 </div>

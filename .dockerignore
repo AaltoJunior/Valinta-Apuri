@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+*.log
+*.env
+.vscode/
+.git/
+tmp/*
+dp/*
+static/img_tmp/*
+static/img_cur/*
+certs/*
+*.tar
+*.pkl
+*.xlsx

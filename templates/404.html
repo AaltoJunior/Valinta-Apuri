@@ -1,10 +1,21 @@
-<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8" />
+    <meta name="language" content="fi">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="theme-color" content="#ff70c1">
+
     <title>404</title>
 </head>
 <body>
-    <h1>404 not found.</h1>
+    <div class="main" id="error-main">
+        <div id="error-card">
+            <h1><b>404</b> - Valitettavasti sivua ei löytynyt</h1>
+            <p>Palaa takaisin etusivulle <a href="/">tästä</a>!</p>
+        </div>
+    </div>
+
+    {% include 'footer.html' %}
 </body>
 </html>
