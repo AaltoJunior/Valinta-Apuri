@@ -1,7 +1,7 @@
 # Aalto-yliopisto Junior Valinta-apuri
 
-> [!WARNING]
-> Valinta-apuri projekti on vielä kehitteillä. Menossa on koevaihe ja Valinta-apuriin tehdään vielä korjauksia, parannuksia ja muutoksia!
+> [!IMPORTANT]
+> Valinta-apuri projekti on vasta julkaistu. Bugeja ja virheitä saattaa vielä tulla vastaan, mutta teemme vielä korjauksia, parannuksia ja muutoksia tarpeen mukaan!
 
 ## Valinta-apuri?
 
