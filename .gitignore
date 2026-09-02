@@ -20,3 +20,4 @@ dp/*
 dp/d.xlsx
 
 caddy/
+!caddy/Caddyfile.example
