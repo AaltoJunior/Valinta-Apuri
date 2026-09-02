@@ -19,5 +19,5 @@ certs/
 dp/*
 dp/d.xlsx
 
-caddy/
+caddy/*
 !caddy/Caddyfile.example
