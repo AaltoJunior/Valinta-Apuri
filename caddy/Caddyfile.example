@@ -9,9 +9,24 @@ http://yourdomain.domain.com {
 https://yourdomain.domain.com {
     tls /etc/caddy/certs/cert.pem /etc/caddy/certs/key.pem
 
-    log {
-        output file /var/log/caddy/access.log
-        format json
+	log {
+		output file /var/log/caddy/access.log {
+			roll_keep_for 24h
+		}
+
+		format filter {
+			wrap json
+			level delete
+			logger delete
+			msg delete
+			request delete
+			bytes_read delete
+			user_id delete
+			duration delete
+			size delete
+			status delete
+			resp_headers delete
+		}
     }
 
     reverse_proxy web:8000 {

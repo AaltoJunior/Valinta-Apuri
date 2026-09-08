@@ -108,8 +108,23 @@ https://yourdomain.domain.com {
     tls /etc/caddy/certs/cert.pem /etc/caddy/certs/key.pem
 
     log {
-        output file /var/log/caddy/access.log
-        format json
+        output file /var/log/caddy/access.log {
+            roll_keep_for 24h
+        }
+
+        format filter {
+            wrap json
+            level delete
+            logger delete
+            msg delete
+            request delete
+            bytes_read delete
+            user_id delete
+            duration delete
+            size delete
+            status delete
+            resp_headers delete
+        }
     }
 
     reverse_proxy web:8000 {
@@ -129,6 +144,12 @@ sudo docker compose ps
 sudo docker compose logs --since=10h xxx
 sudo docker compose logs -f xxx
 ```
+
+#### Caddyn lokitiedot
+
+Caddyn lokitiedot ovat tarkasteltavissa "caddy_logs/access.log" tiedostossa esim. `komentoa sudo tail -f ./caddy_logs/access.log` käyttäen. Tänne oletuskonfiguraatiossa tallentuu vain aikaleima, loggeri ja viesti (kuten "handeled request").
+
+Caddyn toiminnan lokitiedostoja voi tarkastella dockerin komennolla `sudo docker logs valinta-caddy -f`.
 
 ## Todo
 
