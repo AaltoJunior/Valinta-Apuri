@@ -1,0 +1,37 @@
+{
+    auto_https off
+}
+
+http://yourdomain.domain.com {
+    redir https://yourdomain.domain.com{uri} 301
+}
+
+https://yourdomain.domain.com {
+    tls /etc/caddy/certs/cert.pem /etc/caddy/certs/key.pem
+
+	log {
+		output file /var/log/caddy/access.log {
+			roll_keep_for 24h
+		}
+
+		format filter {
+			wrap json
+			level delete
+			logger delete
+			msg delete
+			request delete
+			bytes_read delete
+			user_id delete
+			duration delete
+			size delete
+			status delete
+			resp_headers delete
+		}
+    }
+
+    reverse_proxy web:8000 {
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+}
