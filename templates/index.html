@@ -48,8 +48,7 @@
     <header>
         <h2 style="margin-bottom: 0px;">Aalto-yliopisto Juniorin työpajojen valinta-apuri</h2>
         <p style="margin-top: 4px;">Valitse hakuehdot ja löydä sopivat työpajat. <br>
-        Kelaa sivua alaspäin selataksesi valikoimaa.  <br> 
-        Jos muutat hakuehtojasi, klikkaa vihreää painiketta päivittääksesi muutokset.</p>
+        Kelaa sivua alaspäin selataksesi valikoimaa.</p>
     </header>
 <div class="main">
 
@@ -58,22 +57,22 @@
 
 
 
-        <form id="my-form" class="form" hx-post="/submit" hx-target="this" hx-swap="innerHTML">
+        <form id="my-form" class="form" hx-patch="/submit" hx-trigger="change" hx-target="this" hx-swap="outerHTML">
 
                 {% include 'kategoria.html' %}
 
-            <div class="submit-container">
-                <button type="submit" id="submit">➔</button>
-            </div>
         </form>
 
-
+        <div id="count">
+            <h4>Hakuehtoihin vastaavia työpajoja: {{ rowItemCount }}</h4>
+        </div>
         <div id="valikoima" class="korttipakka">
             {% for i in rowItems %}
                 {% include 'kortti.html' %}
             {% else %}
                 {% include 'kortti-empty.html' %}
             {% endfor %}
+            {% include 'kortti-junior.html' %}
         </div>
 
 

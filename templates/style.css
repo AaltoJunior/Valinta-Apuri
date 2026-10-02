@@ -52,6 +52,10 @@
     max-width: 80vw;
 }
 
+.kortti-junior {
+    background-color: #ED1459;
+}
+
 .kortti h2 {
     height: 58px;
     margin-top: 0px;
@@ -237,28 +241,18 @@ label {
     width: 180px;
 }
 
-#submit {
-    background-color: #23E970;
-    border: none;
-    color: black;
-    padding: 10px 20px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 2em;
-    margin: 4px 2px;
-    cursor: pointer;
-    border-radius: 12px;
+.category-options {
+    width: 440px;
 }
 
-.submit-container {
-    width: 220px;
-    height: 350px;
-    margin: 10px;
-    padding: 10px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
+.category-row-container {
+    display: grid;
+    grid-template-columns: repeat(2, 180px);
+    width: 400px;
+}
+
+#count {
+    text-align: center;
 }
 
 .main {
@@ -326,13 +320,6 @@ p {
         flex-direction: column;
         justify-content: flex-start;
     }
-
-    .submit-container {
-        height: auto;
-        justify-content: center;
-        align-items: center;
-    }
-
 }
 
 @media (max-width: 1045px) {
@@ -340,12 +327,6 @@ p {
         display: flex;
         flex-direction: row;
         justify-content: center;
-    }
-
-    .submit-container {
-        height: auto;
-        justify-content: center;
-        align-items: center;
     }
 }
 
@@ -355,15 +336,6 @@ p {
         display: flex;
         flex-direction: row;
         justify-content: center;
-    }
-
-    .submit-container {
-        height: 60px;
-        display: flex;
-        flex-direction: row;
-        align-items: flex-start;
-        justify-content: center;
-        flex-wrap: nowrap;
     }
 }
 

@@ -82,6 +82,7 @@ def register_routes(app):
             "index.html",
             categories=snapshot.categories,
             rowItems=dataframe.itertuples(name=None),
+            rowItemCount=len(dataframe),
             links=snapshot.links,
             last_updated=get_last_updated(),
         ))
@@ -89,7 +90,7 @@ def register_routes(app):
             response.headers.add(name, value)
         return response
 
-    @app.route("/submit", methods=["POST"])
+    @app.route("/submit", methods=["PATCH"])
     def submit():
         if current_app.extensions["valinta_htmx"]:
             snapshot = get_snapshot()
@@ -108,6 +109,7 @@ def register_routes(app):
                 args=request.form,
                 df=dataframe.to_html(classes="data", header="true", index=True, justify="center"),
                 rowItems=dataframe.itertuples(name=None),
+                rowItemCount=len(dataframe),
                 categories=snapshot.categories,
                 locations=snapshot.dataframe["Location"].unique(),
                 last_updated=get_last_updated(),
