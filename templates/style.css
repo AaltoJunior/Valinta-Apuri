@@ -190,7 +190,7 @@ input[type="checkbox"] {
     -webkit-appearance: none;
     -moz-appearance: none;
     cursor: pointer;
-    
+
     /* Custom box */
     width: 20px;
     height: 20px;
@@ -319,6 +319,13 @@ p {
     .form {
         flex-direction: column;
         justify-content: flex-start;
+    }
+    .category-row-container {
+        grid-template-columns: repeat(1, 180px);
+        width: 180px;
+    }
+    .category-options {
+        width: 240px;
     }
 }
 
