@@ -66,8 +66,17 @@
     height: 116px;
 }
 
+.kortti-junior h2 {
+    height: unset;
+    min-height: 58px;
+}
+
 .kortti.kortti-empty {
     min-height: 350px;
+}
+
+.kortti.kortti-junior {
+    min-height: 400px;
 }
 
 .kortti-img {
