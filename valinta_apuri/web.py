@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 
 import numpy as np
-from flask import Flask, Response, current_app, make_response, render_template, request, send_from_directory
+from flask import Flask, Response, current_app, make_response, redirect, render_template, request, send_from_directory
 from flask_compress import Compress
 from flask_htmx import HTMX
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -18,7 +18,6 @@ def create_app():
     store.wait_until_available()
     cache = SnapshotCache(store, settings.web_refresh_interval_seconds)
     cache.start()
-    cache.wait_for_initial_load(timeout=5)
 
     project_root = os.path.dirname(os.path.dirname(__file__))
     app = Flask(
@@ -77,7 +76,9 @@ def register_routes(app):
             request.environ["wsgi.early_hints"](hints)
 
         snapshot = get_snapshot()
-        dataframe = snapshot.dataframe.copy().sort_values(by=["Workshop"])
+        dataframe = snapshot.dataframe.copy()
+        if "Workshop" in dataframe.columns:
+            dataframe = dataframe.sort_values(by=["Workshop"])
         response = make_response(render_template(
             "index.html",
             categories=snapshot.categories,
@@ -90,31 +91,33 @@ def register_routes(app):
             response.headers.add(name, value)
         return response
 
-    @app.route("/submit", methods=["PATCH"])
+    @app.route("/submit", methods=["GET", "PATCH"])
     def submit():
-        if current_app.extensions["valinta_htmx"]:
-            snapshot = get_snapshot()
-            selection = parse_filters(request.form, snapshot.dataframe, snapshot.categories)
-            dataframe = filter_workshops(snapshot.dataframe, selection).sort_values(by=["Workshop"])
-            return render_template(
-                "partials/valikko_kortit.html",
-                aste=list(enumerate([
-                    "1. Luokka", "2. Luokka", "3. Luokka", "4. Luokka", "5. Luokka",
-                    "6. Luokka", "7. Luokka", "8. Luokka", "9. Luokka", "2. aste",
-                ])),
-                selected_levels=selection.levels,
-                selected_days=selection.days,
-                selected_categories=selection.categories,
-                selected_locations=selection.locations,
-                args=request.form,
-                df=dataframe.to_html(classes="data", header="true", index=True, justify="center"),
-                rowItems=dataframe.itertuples(name=None),
-                rowItemCount=len(dataframe),
-                categories=snapshot.categories,
-                locations=snapshot.dataframe["Location"].unique(),
-                last_updated=get_last_updated(),
-                links=snapshot.links,
-            )
+        # Only the HTMX filter form uses this; send direct visits to the main page.
+        if request.method == "GET" or not current_app.extensions["valinta_htmx"]:
+            return redirect("/", code=303)
+        snapshot = get_snapshot()
+        selection = parse_filters(request.form, snapshot.dataframe, snapshot.categories)
+        dataframe = filter_workshops(snapshot.dataframe, selection).sort_values(by=["Workshop"])
+        return render_template(
+            "partials/valikko_kortit.html",
+            aste=list(enumerate([
+                "1. Luokka", "2. Luokka", "3. Luokka", "4. Luokka", "5. Luokka",
+                "6. Luokka", "7. Luokka", "8. Luokka", "9. Luokka", "2. aste",
+            ])),
+            selected_levels=selection.levels,
+            selected_days=selection.days,
+            selected_categories=selection.categories,
+            selected_locations=selection.locations,
+            args=request.form,
+            df=dataframe.to_html(classes="data", header="true", index=True, justify="center"),
+            rowItems=dataframe.itertuples(name=None),
+            rowItemCount=len(dataframe),
+            categories=snapshot.categories,
+            locations=snapshot.dataframe["Location"].unique(),
+            last_updated=get_last_updated(),
+            links=snapshot.links,
+        )
 
     @app.after_request
     def add_cache_headers(response):
@@ -140,6 +143,11 @@ def register_routes(app):
     @app.route("/sitemap.xml")
     def static_from_root():
         return send_from_directory(current_app.static_folder, request.path[1:])
+
+    @app.errorhandler(405)
+    def method_not_allowed(error):
+        # 303 makes the client follow up with a GET regardless of the original method.
+        return redirect("/", code=303)
 
     @app.errorhandler(404)
     def page_not_found(error):

@@ -3,6 +3,7 @@ import json
 import pickle
 import threading
 import time
+import traceback
 
 import pandas as pd
 import redis
@@ -27,19 +28,34 @@ class RedisSnapshotStore:
             host=settings.redis_host,
             port=6379,
             decode_responses=False,
+            socket_connect_timeout=5,
+            socket_timeout=10,
         )
 
     def wait_until_available(self):
         print("Waiting for Redis data...")
-        while not self.has_data():
+        reported_error = False
+        while True:
+            try:
+                if self.has_data():
+                    break
+            except redis.exceptions.RedisError as error:
+                # Redis may still be starting; depends_on doesn't wait for readiness.
+                if not reported_error:
+                    print(f"Redis not reachable yet, still waiting: {error}")
+                    reported_error = True
             time.sleep(1)
         print("Redis data available - starting app")
 
     def has_data(self):
         return all(
             self.client.get(key)
-            for key in (self.DATA_KEY, self.CATEGORIES_KEY, self.LINKS_KEY)
+            for key in (self.DATA_KEY, self.CATEGORIES_KEY, self.LINKS_KEY, self.UPDATED_AT_KEY)
         )
+
+    def get_updated_at(self):
+        value = self.client.get(self.UPDATED_AT_KEY)
+        return float(value) if value is not None else None
 
     def load(self):
         dataframe = pickle.loads(self.client.get(self.DATA_KEY))
@@ -65,13 +81,17 @@ class SnapshotCache:
         self.store = store
         self.refresh_interval_seconds = refresh_interval_seconds
         self.snapshot = DataSnapshot(pd.DataFrame(), [], {}, 0)
-        self.loaded = threading.Event()
 
     def start(self):
+        # Load once before serving so requests never see the empty placeholder.
+        while True:
+            try:
+                self.snapshot = self.store.load()
+                break
+            except Exception as error:
+                print(f"Initial data load failed, retrying: {error}")
+                time.sleep(1)
         threading.Thread(target=self._update_loop, daemon=True).start()
-
-    def wait_for_initial_load(self, timeout):
-        self.loaded.wait(timeout=timeout)
 
     def get(self):
         return self.snapshot
@@ -79,11 +99,11 @@ class SnapshotCache:
     def _update_loop(self):
         while True:
             try:
-                updated_at = float(self.store.client.get(RedisSnapshotStore.UPDATED_AT_KEY))
-                if updated_at > self.snapshot.updated_at:
+                updated_at = self.store.get_updated_at()
+                if updated_at is not None and updated_at > self.snapshot.updated_at:
                     print("Changes detected in data, reloading...")
                     self.snapshot = self.store.load()
-                    self.loaded.set()
-            except Exception as error:
-                print(f"Redis data refresh failed: {error}")
+            except Exception:
+                print("Redis data refresh failed:")
+                traceback.print_exc()
             time.sleep(self.refresh_interval_seconds)

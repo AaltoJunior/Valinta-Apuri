@@ -17,7 +17,9 @@ def parse_filters(form, dataframe, categories):
     selected_levels = {
         int(key.removeprefix("lvl"))
         for key in form
-        if key.startswith("lvl") and form.get(key) == "True"
+        if key.startswith("lvl")
+        and key.removeprefix("lvl").isdigit()
+        and form.get(key) == "True"
     }
 
     for group_value in form.getlist("lvl_group"):

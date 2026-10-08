@@ -20,20 +20,32 @@ def load_images_from_excel(file_path):
     os.makedirs(cur_folder, exist_ok=True)
 
     workbook = load_workbook(file_path)
+    if "Sheet1" not in workbook.sheetnames:
+        raise ValueError(f"'{file_path}' has no sheet named 'Sheet1' (found: {workbook.sheetnames})")
     sheet = workbook["Sheet1"]
     image_loader = SheetImageLoader(sheet)
+    # A broken image only loses that one card's picture; web.py serves
+    # generic.jpg for missing images.
     for row in range(2, sheet.max_row + 1):
         cell = f"H{row}"
         image_name = row - 2
-        if image_loader.image_in(cell):
-            image = image_loader.get(cell)
-            image.save(os.path.join(tmp_folder, f"{image_name}.png"))
-            print(f"Saved image in {cell} as {tmp_folder}/{image_name}.png")
+        try:
+            if image_loader.image_in(cell):
+                image = image_loader.get(cell)
+                image.save(os.path.join(tmp_folder, f"{image_name}.png"))
+                print(f"Saved image in {cell} as {tmp_folder}/{image_name}.png")
+        except Exception as error:
+            print(f"Skipping image in {cell}: {error}")
 
     for image_file in os.listdir(tmp_folder):
         image_path = os.path.join(tmp_folder, image_file)
-        if os.path.isfile(image_path) and filetype.is_image(image_path):
-            _convert_image(image_path)
+        try:
+            if os.path.isfile(image_path) and filetype.is_image(image_path):
+                _convert_image(image_path)
+        except Exception as error:
+            print(f"Skipping image {image_file}, conversion failed: {error}")
+            if os.path.exists(image_path):
+                os.remove(image_path)
 
     for entry in os.scandir(cur_folder):
         if entry.is_dir(follow_symlinks=False):
