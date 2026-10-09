@@ -13,3 +13,5 @@ certs/*
 *.tar
 *.pkl
 *.xlsx
+*.tar
+*.tar.gz
