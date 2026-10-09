@@ -29,9 +29,31 @@ https://yourdomain.domain.com {
 		}
     }
 
-    reverse_proxy web:8000 {
-        header_up X-Real-IP {remote_host}
-        header_up X-Forwarded-For {remote_host}
-        header_up X-Forwarded-Proto {scheme}
+    # Assets for the maintenance page, served by Caddy so they work while the app is down
+    handle_path /_huolto/* {
+        root * /srv/errors
+        file_server
+    }
+
+    handle {
+        reverse_proxy web:8000 {
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+
+            # Also show the maintenance page when the app itself answers with a 5xx
+            @upstream_error status 5xx
+            handle_response @upstream_error {
+                error "upstream error" 502
+            }
+        }
+    }
+
+    # App unreachable / timed out -> maintenance page (keeps the error status, so htmx won't swap it in)
+    handle_errors 502 503 504 {
+        root * /srv/errors
+        rewrite * /maintenance.html
+        header Cache-Control "no-store"
+        file_server
     }
 }
