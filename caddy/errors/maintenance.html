@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="language" content="fi">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#ff70c1">
+
+    <!-- Caddy serves this page when the app is unreachable, so every asset comes from /_huolto/ (Caddy), not /static/ (the app) -->
+    <link rel="preload" href="/_huolto/BwGradual-Regular.woff2" as="font" crossorigin>
+    <link rel="icon" type="image/png" href="/_huolto/favicon-96x96.png" sizes="96x96" />
+
+    <title>Aalto-yliopisto Junior Valinta-apuri</title>
+
+    <style>
+        @font-face {
+            font-family: 'BwGradual-Black';
+            src: url('/_huolto/BwGradual-Regular.woff2');
+            font-display: swap;
+        }
+
+        body {
+            background-color: #e4e4e4;
+            font-family: 'BwGradual-Black';
+            position: relative;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: url('/_huolto/BG.webp');
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position-y: center;
+            background-position-x: center;
+            background-size: 90%;
+            opacity: 30%;
+            z-index: -1;
+        }
+
+        .main {
+            flex: 1;
+        }
+
+        footer {
+            background-color: gray;
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            flex-wrap: nowrap;
+            padding: 20px;
+            font-size: 10pt;
+            text-align: center;
+        }
+
+        footer p {
+            margin: 5px;
+        }
+
+        a {
+            color: #5E00C6;
+            text-decoration: none;
+        }
+
+        p {
+            line-height: 19px;
+        }
+
+        #error-main {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #error-card {
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            max-width: 600px;
+            text-align: center;
+            padding: 40px;
+            border-radius: 40px;
+            margin: 40px;
+        }
+
+        @media (hover: none) {
+            body::before {
+                background-repeat: space;
+                background-attachment: scroll;
+                background-position-y: top;
+                background-size: 300%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main" id="error-main">
+        <div id="error-card">
+            <h1>Hups, palvelimella meni jotain pieleen!</h1>
+            <p>Pahoittelemme häiriötä! Valinta-apuri on tilapäisesti poissa käytöstä, ja työskentelemme palvelun palauttamiseksi mahdollisimman pian.</p>
+            <p>Yritä hetken kuluttua <a href="">uudelleen</a>!</p>
+        </div>
+    </div>
+
+    <footer>
+        <p>
+            Vieraile Aalto-yliopisto Juniorin <a href="https://junior.aalto.fi/">verkkosivulla</a>!
+        </p>
+        <p>&copy; 2026 Aalto-yliopisto Junior</p>
+        <p>
+            Emme kerää, tallenna tai käsittele henkilötietoja.
+        </p>
+        <p>
+            Tämä verkkosivusto ei käytä evästeitä tai seurantatekniikoita.
+        </p>
+    </footer>
+</body>
+</html>
