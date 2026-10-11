@@ -29,7 +29,7 @@ def parse_filters(form, dataframe, categories):
             if value.strip().isdigit()
         )
 
-    return FilterSelection(
+    selection = FilterSelection(
         days=selected_days,
         levels=sorted(selected_levels),
         locations=[
@@ -39,6 +39,17 @@ def parse_filters(form, dataframe, categories):
         ],
         categories=[category for category in categories if form.get(category) == "True"],
     )
+
+    # The form reveals the filters step by step (category -> level -> day + location).
+    # Clearing a step hides the later ones, so their submitted values must be dropped
+    # too, otherwise hidden filters keep narrowing the results.
+    if not selection.categories:
+        selection.levels = []
+    if not selection.levels:
+        selection.days = []
+    if not selection.days:
+        selection.locations = []
+    return selection
 
 
 def filter_workshops(dataframe, selection):
