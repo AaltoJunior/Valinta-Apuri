@@ -208,7 +208,7 @@ input[type="checkbox"] {
     border-radius: 4px; /* Change to 50% for round look */
     position: relative;
     vertical-align: middle;
-    transition: all 0.2s ease;
+    transition: background-color 150ms ease, border-color 150ms ease;
 }
 
 input[type="checkbox"]:checked::after {
@@ -366,7 +366,6 @@ p {
     left: 50%;
     bottom: calc(20px + env(safe-area-inset-bottom));
     z-index: 10;
-    view-transition-name: vt-tulos-nappi;
 
     display: flex;
     align-items: center;
@@ -385,26 +384,28 @@ p {
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
 
+    /* transform = show/hide slide, scale = press feedback, so each keeps its own timing */
     transform: translateX(-50%);
     transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1),
+                scale 160ms ease-out,
                 opacity 200ms ease-out,
                 visibility 0s linear 0s;
 }
 
 .tulos-nappi:active {
-    transform: translateX(-50%) scale(0.96);
-    transition-duration: 100ms;
+    scale: 0.96;
 }
 
-/* Hidden: slides down off the same edge it came from */
+/* Hidden: slides down off the same edge it came from, faster than it arrived */
 .tulos-nappi.piilossa {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
     transform: translateX(-50%) translateY(calc(100% + 40px));
-    transition: transform 250ms cubic-bezier(0.4, 0, 1, 1),
-                opacity 200ms ease-in,
-                visibility 0s linear 250ms;
+    transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1),
+                scale 160ms ease-out,
+                opacity 150ms ease-out,
+                visibility 0s linear 200ms;
 }
 
 .tulos-maara {
@@ -431,46 +432,65 @@ p {
 }
 
 /* View transitions for the filter swap (hx-swap="... transition:true").
-   Named elements glide to their new position; everything else swaps instantly. */
+   Named elements glide to their new position; everything else swaps instantly.
+   The count and card grid are deliberately NOT named: snapshotting the whole
+   card grid (tall, full of images) dropped the first frames of every transition. */
 .vt-kategoria { view-transition-name: vt-kategoria; }
 .vt-aste      { view-transition-name: vt-aste; }
 .vt-paiva     { view-transition-name: vt-paiva; }
 .vt-location  { view-transition-name: vt-location; }
-#count        { view-transition-name: vt-count; }
-#valikoima    { view-transition-name: vt-valikoima; }
 
 ::view-transition-old(root),
 ::view-transition-new(root) {
     animation: none;
 }
 
-/* Critically damped feel: fast start, soft settle, no overshoot */
+/* Critically damped feel: fast start, soft settle, no overshoot.
+   Same duration and curve as vt-panel-in, so moving and entering panels land together. */
 ::view-transition-group(*) {
-    animation-duration: 280ms;
-    animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+    animation-duration: 260ms;
+    animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-/* A panel that appears grows in from slightly smaller; one that leaves shrinks the same way */
-@keyframes vt-panel-in  { from { opacity: 0; transform: scale(0.96); } }
-@keyframes vt-panel-out { to   { opacity: 0; transform: scale(0.96); } }
+/* A panel that appears scales up into place; one that leaves reverses the same path, faster.
+   No blur here: filters on view-transition snapshots lag and jump at the end in Safari. */
+@keyframes vt-panel-in  { from { opacity: 0; transform: scale(0.9); } }
+@keyframes vt-panel-out { to   { opacity: 0; transform: scale(0.9); } }
 
 ::view-transition-new(vt-aste):only-child,
 ::view-transition-new(vt-paiva):only-child,
 ::view-transition-new(vt-location):only-child {
-    animation: vt-panel-in 280ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation: vt-panel-in 260ms cubic-bezier(0.23, 1, 0.32, 1) both;
 }
 
 ::view-transition-old(vt-aste):only-child,
 ::view-transition-old(vt-paiva):only-child,
 ::view-transition-old(vt-location):only-child {
-    animation: vt-panel-out 200ms cubic-bezier(0.4, 0, 1, 1) both;
+    animation: vt-panel-out 200ms cubic-bezier(0.23, 1, 0.32, 1) both;
 }
 
+/* Reduced motion: no movement or scaling, but keep a short crossfade so the change still registers */
+@keyframes vt-fade-in  { from { opacity: 0; } }
+@keyframes vt-fade-out { to   { opacity: 0; } }
+
 @media (prefers-reduced-motion: reduce) {
-    ::view-transition-group(*),
+    ::view-transition-group(*) {
+        animation: none !important;
+    }
     ::view-transition-old(*),
     ::view-transition-new(*) {
-        animation: none !important;
+        animation-duration: 150ms !important;
+        animation-timing-function: ease !important;
+    }
+    ::view-transition-new(vt-aste):only-child,
+    ::view-transition-new(vt-paiva):only-child,
+    ::view-transition-new(vt-location):only-child {
+        animation-name: vt-fade-in !important;
+    }
+    ::view-transition-old(vt-aste):only-child,
+    ::view-transition-old(vt-paiva):only-child,
+    ::view-transition-old(vt-location):only-child {
+        animation-name: vt-fade-out !important;
     }
 }
 
