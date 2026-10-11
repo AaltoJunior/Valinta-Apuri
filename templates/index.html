@@ -63,6 +63,7 @@
 
         </form>
 
+        <div id="tulokset"></div>
         <div id="count">
             <h4>Hakuehtoihin vastaavia työpajoja: {{ rowItemCount }}</h4>
         </div>
@@ -80,5 +81,32 @@
     </div>
 </div>
     {% include 'footer.html' %}
+
+    <button type="button" id="tulos-nappi" class="tulos-nappi piilossa" aria-hidden="true" tabindex="-1">
+        Näytä työpajat <span id="tulos-maara" class="tulos-maara">{{ rowItemCount }}</span> <span aria-hidden="true">↓</span>
+    </button>
+    <script>
+        // Floating "show results" button: visible only while the results start below the screen.
+        (function () {
+            var nappi = document.getElementById("tulos-nappi");
+            var tulokset = document.getElementById("tulokset");
+
+            function nayta(nakyvissa) {
+                nappi.classList.toggle("piilossa", !nakyvissa);
+                nappi.setAttribute("aria-hidden", String(!nakyvissa));
+                nappi.tabIndex = nakyvissa ? 0 : -1;
+            }
+
+            new IntersectionObserver(function (entries) {
+                var e = entries[0];
+                nayta(!e.isIntersecting && e.boundingClientRect.top > window.innerHeight);
+            }).observe(tulokset);
+
+            nappi.addEventListener("click", function () {
+                var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+                tulokset.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+            });
+        })();
+    </script>
 </body>
 </html>

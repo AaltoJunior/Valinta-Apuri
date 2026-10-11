@@ -23,6 +23,8 @@
     <h4>Hakuehtoihin vastaavia työpajoja: {{ rowItemCount }}</h4>
 </div>
 
+<span id="tulos-maara" class="tulos-maara" hx-swap-oob="true">{{ rowItemCount }}</span>
+
 <div id="valikoima" class="korttipakka" hx-swap-oob="true">
     {% for i in rowItems %}
         {% include 'kortti.html' %}

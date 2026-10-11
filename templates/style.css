@@ -356,6 +356,80 @@ p {
     }
 }
 
+/* Floating "Näytä työpajat" button, shown while the results are below the screen */
+#tulokset {
+    scroll-margin-top: 16px;
+}
+
+.tulos-nappi {
+    position: fixed;
+    left: 50%;
+    bottom: calc(20px + env(safe-area-inset-bottom));
+    z-index: 10;
+    view-transition-name: vt-tulos-nappi;
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 999px;
+    background: rgba(251, 189, 176, 0.75);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+
+    font: inherit;
+    font-size: 1rem;
+    color: #000;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+
+    transform: translateX(-50%);
+    transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1),
+                opacity 200ms ease-out,
+                visibility 0s linear 0s;
+}
+
+.tulos-nappi:active {
+    transform: translateX(-50%) scale(0.96);
+    transition-duration: 100ms;
+}
+
+/* Hidden: slides down off the same edge it came from */
+.tulos-nappi.piilossa {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(calc(100% + 40px));
+    transition: transform 250ms cubic-bezier(0.4, 0, 1, 1),
+                opacity 200ms ease-in,
+                visibility 0s linear 250ms;
+}
+
+.tulos-maara {
+    min-width: 1.6em;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #fff;
+    text-align: center;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    .tulos-nappi {
+        background: #FBBDB0;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tulos-nappi,
+    .tulos-nappi.piilossa {
+        transform: translateX(-50%);
+    }
+}
+
 /* View transitions for the filter swap (hx-swap="... transition:true").
    Named elements glide to their new position; everything else swaps instantly. */
 .vt-kategoria { view-transition-name: vt-kategoria; }
