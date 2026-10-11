@@ -42,7 +42,9 @@
     <meta name="twitter:image:width" content="1200" />
     <meta name="twitter:image:height" content="630" />
 
-    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <!-- htmx 4 swaps 4xx/5xx responses by default; keep them out so Caddy's maintenance page never replaces the form -->
+    <meta name="htmx-config" content='{"noSwap": [204, 304, "4xx", "5xx"]}'>
+    <script src="https://unpkg.com/htmx.org@4.0.0/dist/htmx.min.js" defer></script>
 </head>
 <body>
     <header>

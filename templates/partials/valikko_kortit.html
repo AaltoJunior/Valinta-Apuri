@@ -25,7 +25,7 @@
 
 <span id="tulos-maara" class="tulos-maara" hx-swap-oob="true">{{ rowItemCount }}</span>
 
-<div id="valikoima" class="korttipakka" hx-swap-oob="true">
+<div id="valikoima" class="korttipakka" hx-swap-oob="outerMorph">
     {% for i in rowItems %}
         {% include 'kortti.html' %}
     {% else %}
