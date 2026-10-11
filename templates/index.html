@@ -97,10 +97,12 @@
                 nappi.tabIndex = nakyvissa ? 0 : -1;
             }
 
+            // The observed area reaches infinitely far above the screen, so "not intersecting"
+            // means exactly "results start below the screen". A plain viewport observer never
+            // fires when scroll restoration on reload jumps the marker from below to above.
             new IntersectionObserver(function (entries) {
-                var e = entries[0];
-                nayta(!e.isIntersecting && e.boundingClientRect.top > window.innerHeight);
-            }).observe(tulokset);
+                nayta(!entries[0].isIntersecting);
+            }, { rootMargin: "1000000px 0px 0px 0px" }).observe(tulokset);
 
             nappi.addEventListener("click", function () {
                 var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
