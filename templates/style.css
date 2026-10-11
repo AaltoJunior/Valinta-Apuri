@@ -113,13 +113,14 @@ body {
     flex-direction: column;
 }
 
+/* Pinned layer instead of background-attachment: fixed, which repaints on every scroll */
 body::before {
     content: "";
-    position: absolute;
+    position: fixed;
     inset: 0;
+    pointer-events: none;
     background-image: url('{{ static_url("BG.webp") }}');
     background-repeat: no-repeat;
-    background-attachment: fixed;
     background-position-y: center;
     background-position-x: center;
     background-size: 90%;
@@ -352,6 +353,50 @@ p {
         display: flex;
         flex-direction: row;
         justify-content: center;
+    }
+}
+
+/* View transitions for the filter swap (hx-swap="... transition:true").
+   Named elements glide to their new position; everything else swaps instantly. */
+.vt-kategoria { view-transition-name: vt-kategoria; }
+.vt-aste      { view-transition-name: vt-aste; }
+.vt-paiva     { view-transition-name: vt-paiva; }
+.vt-location  { view-transition-name: vt-location; }
+#count        { view-transition-name: vt-count; }
+#valikoima    { view-transition-name: vt-valikoima; }
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+}
+
+/* Critically damped feel: fast start, soft settle, no overshoot */
+::view-transition-group(*) {
+    animation-duration: 280ms;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* A panel that appears grows in from slightly smaller; one that leaves shrinks the same way */
+@keyframes vt-panel-in  { from { opacity: 0; transform: scale(0.96); } }
+@keyframes vt-panel-out { to   { opacity: 0; transform: scale(0.96); } }
+
+::view-transition-new(vt-aste):only-child,
+::view-transition-new(vt-paiva):only-child,
+::view-transition-new(vt-location):only-child {
+    animation: vt-panel-in 280ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+::view-transition-old(vt-aste):only-child,
+::view-transition-old(vt-paiva):only-child,
+::view-transition-old(vt-location):only-child {
+    animation: vt-panel-out 200ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation: none !important;
     }
 }
 

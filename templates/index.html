@@ -9,7 +9,7 @@
     <link rel="preload" href="{{ static_url('BG.webp') }}" as="image" fetchpriority="high">
     <link rel="stylesheet" href="{{ static_url('style.css') }}">
     
-    <meta name="theme-color" content="#ff70c1">
+    <meta name="theme-color" content="#fbbdb0">
 
     <title>Aalto-yliopisto Junior Valinta-apuri</title>
 
@@ -57,7 +57,7 @@
 
 
 
-        <form id="my-form" class="form" hx-patch="/submit" hx-trigger="change" hx-target="this" hx-swap="outerHTML">
+        <form id="my-form" class="form" hx-patch="/submit" hx-trigger="change" hx-target="this" hx-swap="outerHTML transition:true">
 
                 {% include 'kategoria.html' %}
 
