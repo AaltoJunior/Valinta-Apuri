@@ -9,7 +9,7 @@
     <link rel="preload" href="{{ static_url('BG.webp') }}" as="image" fetchpriority="high">
     <link rel="stylesheet" href="{{ static_url('style.css') }}">
     
-    <meta name="theme-color" content="#ff70c1">
+    <meta name="theme-color" content="#fbbdb0">
 
     <title>Aalto-yliopisto Junior Valinta-apuri</title>
 
@@ -42,7 +42,9 @@
     <meta name="twitter:image:width" content="1200" />
     <meta name="twitter:image:height" content="630" />
 
-    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <!-- htmx 4 swaps 4xx/5xx responses by default; keep them out so Caddy's maintenance page never replaces the form -->
+    <meta name="htmx-config" content='{"noSwap": [204, 304, "4xx", "5xx"]}'>
+    <script src="https://unpkg.com/htmx.org@4.0.0/dist/htmx.min.js" defer></script>
 </head>
 <body>
     <header>
@@ -57,12 +59,13 @@
 
 
 
-        <form id="my-form" class="form" hx-patch="/submit" hx-trigger="change" hx-target="this" hx-swap="outerHTML">
+        <form id="my-form" class="form" hx-patch="/submit" hx-trigger="change" hx-target="this" hx-swap="outerHTML transition:true">
 
                 {% include 'kategoria.html' %}
 
         </form>
 
+        <div id="tulokset"></div>
         <div id="count">
             <h4>Hakuehtoihin vastaavia työpajoja: {{ rowItemCount }}</h4>
         </div>
@@ -80,5 +83,49 @@
     </div>
 </div>
     {% include 'footer.html' %}
+
+    <button type="button" id="tulos-nappi" class="tulos-nappi piilossa" aria-hidden="true" tabindex="-1">
+        Näytä työpajat <span id="tulos-maara" class="tulos-maara">{{ rowItemCount }}</span> <span aria-hidden="true">↓</span>
+    </button>
+    <script>
+        // Floating "show results" button: visible only while the results start below the screen.
+        (function () {
+            var nappi = document.getElementById("tulos-nappi");
+            var tulokset = document.getElementById("tulokset");
+
+            function nayta(nakyvissa) {
+                nappi.classList.toggle("piilossa", !nakyvissa);
+                nappi.setAttribute("aria-hidden", String(!nakyvissa));
+                nappi.tabIndex = nakyvissa ? 0 : -1;
+            }
+
+            // Compare the marker against the layout viewport (clientHeight), which pinch zoom
+            // doesn't change. An IntersectionObserver flickered during Safari trackpad zoom.
+            // Checking on every scroll also covers scroll restoration jumps on reload.
+            var odottaa = false;
+            function tarkista() {
+                odottaa = false;
+                nayta(tulokset.getBoundingClientRect().top > document.documentElement.clientHeight);
+            }
+            function ajoita() {
+                if (!odottaa) {
+                    odottaa = true;
+                    requestAnimationFrame(tarkista);
+                }
+            }
+            window.addEventListener("scroll", ajoita, { passive: true });
+            window.addEventListener("resize", ajoita);
+            window.addEventListener("load", ajoita);
+            window.addEventListener("pageshow", ajoita);
+            // Filter swaps change the form's height and move the marker without scrolling
+            new ResizeObserver(ajoita).observe(document.body);
+            tarkista();
+
+            nappi.addEventListener("click", function () {
+                var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+                tulokset.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+            });
+        })();
+    </script>
 </body>
 </html>

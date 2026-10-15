@@ -1,4 +1,4 @@
-<form id="my-form" class="form" hx-patch="/submit" hx-trigger="change" hx-target="this" hx-swap="outerHTML">
+<form id="my-form" class="form" hx-patch="/submit" hx-trigger="change" hx-target="this" hx-swap="outerHTML transition:true">
     {% if selected_categories %}
         {% include 'kategoria.html' %}
     {% if selected_levels %}
@@ -23,7 +23,9 @@
     <h4>Hakuehtoihin vastaavia työpajoja: {{ rowItemCount }}</h4>
 </div>
 
-<div id="valikoima" class="korttipakka" hx-swap-oob="true">
+<span id="tulos-maara" class="tulos-maara" hx-swap-oob="true">{{ rowItemCount }}</span>
+
+<div id="valikoima" class="korttipakka" hx-swap-oob="outerMorph">
     {% for i in rowItems %}
         {% include 'kortti.html' %}
     {% else %}

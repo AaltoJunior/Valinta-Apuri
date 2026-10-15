@@ -113,13 +113,14 @@ body {
     flex-direction: column;
 }
 
+/* Pinned layer instead of background-attachment: fixed, which repaints on every scroll */
 body::before {
     content: "";
-    position: absolute;
+    position: fixed;
     inset: 0;
+    pointer-events: none;
     background-image: url('{{ static_url("BG.webp") }}');
     background-repeat: no-repeat;
-    background-attachment: fixed;
     background-position-y: center;
     background-position-x: center;
     background-size: 90%;
@@ -207,7 +208,7 @@ input[type="checkbox"] {
     border-radius: 4px; /* Change to 50% for round look */
     position: relative;
     vertical-align: middle;
-    transition: all 0.2s ease;
+    transition: background-color 150ms ease, border-color 150ms ease;
 }
 
 input[type="checkbox"]:checked::after {
@@ -352,6 +353,144 @@ p {
         display: flex;
         flex-direction: row;
         justify-content: center;
+    }
+}
+
+/* Floating "Näytä työpajat" button, shown while the results are below the screen */
+#tulokset {
+    scroll-margin-top: 16px;
+}
+
+.tulos-nappi {
+    position: fixed;
+    left: 50%;
+    bottom: calc(20px + env(safe-area-inset-bottom));
+    z-index: 10;
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 999px;
+    background: rgba(251, 189, 176, 0.75);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+
+    font: inherit;
+    font-size: 1rem;
+    color: #000;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+
+    /* transform = show/hide slide, scale = press feedback, so each keeps its own timing */
+    transform: translateX(-50%);
+    transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1),
+                scale 160ms ease-out,
+                opacity 200ms ease-out,
+                visibility 0s linear 0s;
+}
+
+.tulos-nappi:active {
+    scale: 0.96;
+}
+
+/* Hidden: slides down off the same edge it came from, fading out alongside the slide */
+.tulos-nappi.piilossa {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(calc(100% + 40px));
+    transition: transform 280ms cubic-bezier(0.4, 0, 0.6, 1),
+                scale 160ms ease-out,
+                opacity 260ms ease-in,
+                visibility 0s linear 280ms;
+}
+
+.tulos-maara {
+    min-width: 1.6em;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #fff;
+    text-align: center;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    .tulos-nappi {
+        background: #FBBDB0;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tulos-nappi,
+    .tulos-nappi.piilossa {
+        transform: translateX(-50%);
+    }
+}
+
+/* View transitions for the filter swap (hx-swap="... transition:true").
+   Named elements glide to their new position; everything else swaps instantly.
+   The count and card grid are deliberately NOT named: snapshotting the whole
+   card grid (tall, full of images) dropped the first frames of every transition. */
+.vt-kategoria { view-transition-name: vt-kategoria; }
+.vt-aste      { view-transition-name: vt-aste; }
+.vt-paiva     { view-transition-name: vt-paiva; }
+.vt-location  { view-transition-name: vt-location; }
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+}
+
+/* Critically damped feel: fast start, soft settle, no overshoot.
+   Same duration and curve as vt-panel-in, so moving and entering panels land together. */
+::view-transition-group(*) {
+    animation-duration: 260ms;
+    animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* A panel that appears scales up into place; one that leaves reverses the same path, faster.
+   No blur here: filters on view-transition snapshots lag and jump at the end in Safari. */
+@keyframes vt-panel-in  { from { opacity: 0; transform: scale(0.9); } }
+@keyframes vt-panel-out { to   { opacity: 0; transform: scale(0.9); } }
+
+::view-transition-new(vt-aste):only-child,
+::view-transition-new(vt-paiva):only-child,
+::view-transition-new(vt-location):only-child {
+    animation: vt-panel-in 260ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+::view-transition-old(vt-aste):only-child,
+::view-transition-old(vt-paiva):only-child,
+::view-transition-old(vt-location):only-child {
+    animation: vt-panel-out 200ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+/* Reduced motion: no movement or scaling, but keep a short crossfade so the change still registers */
+@keyframes vt-fade-in  { from { opacity: 0; } }
+@keyframes vt-fade-out { to   { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*) {
+        animation: none !important;
+    }
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation-duration: 150ms !important;
+        animation-timing-function: ease !important;
+    }
+    ::view-transition-new(vt-aste):only-child,
+    ::view-transition-new(vt-paiva):only-child,
+    ::view-transition-new(vt-location):only-child {
+        animation-name: vt-fade-in !important;
+    }
+    ::view-transition-old(vt-aste):only-child,
+    ::view-transition-old(vt-paiva):only-child,
+    ::view-transition-old(vt-location):only-child {
+        animation-name: vt-fade-out !important;
     }
 }
 
