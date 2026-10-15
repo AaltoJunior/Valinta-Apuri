@@ -99,12 +99,27 @@
                 nappi.tabIndex = nakyvissa ? 0 : -1;
             }
 
-            // The observed area reaches infinitely far above the screen, so "not intersecting"
-            // means exactly "results start below the screen". A plain viewport observer never
-            // fires when scroll restoration on reload jumps the marker from below to above.
-            new IntersectionObserver(function (entries) {
-                nayta(!entries[0].isIntersecting);
-            }, { rootMargin: "1000000px 0px 0px 0px" }).observe(tulokset);
+            // Compare the marker against the layout viewport (clientHeight), which pinch zoom
+            // doesn't change. An IntersectionObserver flickered during Safari trackpad zoom.
+            // Checking on every scroll also covers scroll restoration jumps on reload.
+            var odottaa = false;
+            function tarkista() {
+                odottaa = false;
+                nayta(tulokset.getBoundingClientRect().top > document.documentElement.clientHeight);
+            }
+            function ajoita() {
+                if (!odottaa) {
+                    odottaa = true;
+                    requestAnimationFrame(tarkista);
+                }
+            }
+            window.addEventListener("scroll", ajoita, { passive: true });
+            window.addEventListener("resize", ajoita);
+            window.addEventListener("load", ajoita);
+            window.addEventListener("pageshow", ajoita);
+            // Filter swaps change the form's height and move the marker without scrolling
+            new ResizeObserver(ajoita).observe(document.body);
+            tarkista();
 
             nappi.addEventListener("click", function () {
                 var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
