@@ -17,9 +17,9 @@ Aalto-yliopisto Junior Valinta-apuriin pääset [tästä](https://)!
 
 ### Rakenne
 
-Perustuu kahteen python tiedostoon. [bg.py](/bg.py) on taustalla toimiva dataa päivittävä prosessi joka kommunikoi sharepointin kanssa. [app.py](/app.py) on itse palvelin yhdessä [Gunicorn](https://gunicorn.org/) WSGI palvelimen kanssa.
+Perustuu kahteen python tiedostoon. [bg.py](/bg.py) on taustalla toimiva dataa päivittävä prosessi joka kommunikoi SharePointin kanssa. [app.py](/app.py) on itse palvelin yhdessä [Gunicorn](https://gunicorn.org/) WSGI palvelimen kanssa.
 
-Taustaprosessi tarvitsee environment variableja autentikaatioon MS Graphin kanssa ladatatakseen tiedostot sharepointista.
+Taustaprosessi tarvitsee environment variableja autentikaatioon MS Graphin kanssa ladatakseen tiedostot SharePointista.
 
 ### Docker
 
@@ -27,9 +27,9 @@ Projekti toimii yhdellä Docker composella. Compose käynnistää ensin [bg.py](
 
 Toiminta menee käytännössä näin:
 
-1. bg.py lukee sharepointista dataa (Excel tiedosto).
+1. bg.py lukee SharePointista dataa (Excel tiedosto).
 2. Tämän datan bg käsittelee ja siirtää Redikseen. Bg myös lukee ja kompressoi kuvat ja tallentaa nämä.
-3. app.py Lukee rediksestä tiedot ja levylle tallennetut kuvat.
+3. app.py lukee Rediksestä tiedot ja levylle tallennetut kuvat.
 4. app tarjoilee gunicornin kanssa HTTP liikennettä Caddylle
 5. Caddy tarjoaa tämän eteenpäin HTTPS liikenteenä.
 
@@ -57,7 +57,7 @@ docker save valinta-apuri:latest -o valinta-apuri.tar
 gzip valinta-apuri.tar
 ```
 
-Siirrä palvelimelle valinta-apuri.tar, docker-compose.wproxy.yml ja /certs/*. Tämän jälkeen voidaan ladata kontti ja käyttää sitä.
+Siirrä palvelimelle `valinta-apuri.tar.gz`, `docker-compose.wproxy.yml` ja `certs/*`. Tämän jälkeen voidaan ladata kontti ja käyttää sitä.
 
 ```bash
 gunzip valinta-apuri.tar.gz
@@ -83,7 +83,7 @@ Jos haluat poistaa certit myöhemmin, riittää että poistat `certs/`-kansion s
 
 Konfigurointi tapahtuu kahden tiedoston kautta: .env ja /caddy/Caddyfile. Näitä kumpaakaan ei ole repositoryssä mukana.
 
-**.env** tiedostossa määritetään lähinnä bg:n käyttämiä tietoja sharepointtia varten.
+**.env** tiedostossa määritetään lähinnä bg:n käyttämiä tietoja SharePointia varten.
 
 ```ini
 ENV = "production"
@@ -147,7 +147,7 @@ sudo docker compose logs -f xxx
 
 #### Caddyn lokitiedot
 
-Caddyn lokitiedot ovat tarkasteltavissa "caddy_logs/access.log" tiedostossa esim. `komentoa sudo tail -f ./caddy_logs/access.log` käyttäen. Tänne oletuskonfiguraatiossa tallentuu vain aikaleima, loggeri ja viesti (kuten "handeled request").
+Caddyn lokitiedot ovat tarkasteltavissa "caddy_logs/access.log" tiedostossa esim. komentoa `sudo tail -f ./caddy_logs/access.log` käyttäen. Tänne oletuskonfiguraatiossa tallentuu vain aikaleima, loggeri ja viesti (kuten "handled request").
 
 Caddyn toiminnan lokitiedostoja voi tarkastella dockerin komennolla `sudo docker logs valinta-caddy -f`.
 
@@ -155,8 +155,8 @@ Caddyn toiminnan lokitiedostoja voi tarkastella dockerin komennolla `sudo docker
 
 - [X] HTTP/2 protokolla
 - [x] preload/preconnect .css ja fonteille (myös BG.webp)
-- [x] Cache-Controll implementaatio kuville yms.
+- [x] Cache-Control implementaatio kuville yms.
 - [x] Kuvat .jpg -> .webp
 - [ ] ~~Vaihto palvelimella renderöidystä html tiedostosta javascriptiin~~
-- [x] Vahdettu HTMX pohjaiseen toteukseen, joka mahdollistaa sivun sisällön vaihtamisen. Eli ei tarvitse ladata koko sivua uudelleen.
-- [ ] Vaihto polling pohjaisesta taustaprorssista webhookkiin
+- [x] Vaihdettu HTMX-pohjaiseen toteutukseen, joka mahdollistaa sivun sisällön vaihtamisen. Eli ei tarvitse ladata koko sivua uudelleen.
+- [ ] Vaihto polling-pohjaisesta taustaprosessista webhookkiin
