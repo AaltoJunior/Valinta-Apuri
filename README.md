@@ -17,9 +17,9 @@ Aalto-yliopisto Junior Valinta-apuriin pääset [tästä](https://)!
 
 ### Rakenne
 
-Perustuu kahteen python tiedostoon. [bg.py](/bg.py) on taustalla toimiva dataa päivittävä prosessi joka kommunikoi sharepointin kanssa. [app.py](/app.py) on itse palvelin yhdessä [Gunicorn](https://gunicorn.org/) WSGI palvelimen kanssa.
+Perustuu kahteen python tiedostoon. [bg.py](/bg.py) on taustalla toimiva dataa päivittävä prosessi joka kommunikoi SharePointin kanssa. [app.py](/app.py) on itse palvelin yhdessä [Gunicorn](https://gunicorn.org/) WSGI palvelimen kanssa.
 
-Taustaprosessi tarvitsee environment variableja autentikaatioon MS Graphin kanssa ladatatakseen tiedostot sharepointista.
+Työpajojen data on SharePointin Microsoft Listissä (`apuri-data`) ja kalenterilinkit erillisessä listassa (`apuri-links`). Taustaprosessi tarvitsee environment variableja ja sovellusrekisteröinnin sertifikaatin autentikaatioon MS Graphin ja SharePoint REST:n kanssa. SharePoint REST hyväksyy app-only kirjautumisen vain sertifikaatilla, ja sitä tarvitaan kuvien (listan liitetiedostojen) lataamiseen.
 
 ### Docker
 
@@ -27,9 +27,9 @@ Projekti toimii yhdellä Docker composella. Compose käynnistää ensin [bg.py](
 
 Toiminta menee käytännössä näin:
 
-1. bg.py lukee sharepointista dataa (Excel tiedosto).
-2. Tämän datan bg käsittelee ja siirtää Redikseen. Bg myös lukee ja kompressoi kuvat ja tallentaa nämä.
-3. app.py Lukee rediksestä tiedot ja levylle tallennetut kuvat.
+1. bg.py tarkistaa minuutin välein, onko listoja muutettu (`LastItemModifiedDate` ja `LastItemDeletedDate`). Muutoksen jälkeen se hakee kaikki listan rivit.
+2. Tämän datan bg käsittelee ja siirtää Redikseen. Bg myös lataa uudet tai vaihdetut kuvat, kompressoi ne ja tallentaa nämä.
+3. app.py lukee Rediksestä tiedot ja levylle tallennetut kuvat.
 4. app tarjoilee gunicornin kanssa HTTP liikennettä Caddylle
 5. Caddy tarjoaa tämän eteenpäin HTTPS liikenteenä.
 
@@ -47,7 +47,7 @@ docker compose -f docker-compose.yml up --build -d
 
 ```
 
-Tarvitset ennen käynnistystä ympäristömuuttujat `CLIENT_ID`, `CLIENT_SECRET`, `TENANT_ID` ja `DRIVE_ID`, sekä sertifikaatit `certs/cert.pem` ja `certs/key.pem`.
+Tarvitset ennen käynnistystä ympäristömuuttujat `CLIENT_ID`, `TENANT_ID`, `LIST_ID`, `LINKS_LIST_ID`, `SITE_HOST`, `SITE_PATH`, `CERT_FILE` ja `KEY_FILE`, sovellusrekisteröinnin sertifikaatin ja sen yksityisen avaimen `secrets/`-kansiossa, sekä HTTPS-sertifikaatit `certs/cert.pem` ja `certs/key.pem`. `secrets/`-kansio mountataan vain bg-kontille, eikä sitä kopioida imageen.
 
 Paikallinen build (käyttäen buildx) ja vienti:
 
@@ -57,7 +57,7 @@ docker save valinta-apuri:latest -o valinta-apuri.tar
 gzip valinta-apuri.tar
 ```
 
-Siirrä palvelimelle valinta-apuri.tar, docker-compose.wproxy.yml ja /certs/*. Tämän jälkeen voidaan ladata kontti ja käyttää sitä.
+Siirrä palvelimelle `valinta-apuri.tar.gz`, `docker-compose.wproxy.yml`, `certs/*` ja `secrets/*`. Tämän jälkeen voidaan ladata kontti ja käyttää sitä.
 
 ```bash
 gunzip valinta-apuri.tar.gz
@@ -83,15 +83,41 @@ Jos haluat poistaa certit myöhemmin, riittää että poistat `certs/`-kansion s
 
 Konfigurointi tapahtuu kahden tiedoston kautta: .env ja /caddy/Caddyfile. Näitä kumpaakaan ei ole repositoryssä mukana.
 
-**.env** tiedostossa määritetään lähinnä bg:n käyttämiä tietoja sharepointtia varten.
+**.env** tiedostossa määritetään lähinnä bg:n käyttämiä tietoja SharePointia varten.
 
 ```ini
 ENV = "production"
 CLIENT_ID = "..."
-CLIENT_SECRET = "..."
 TENANT_ID = "..."
-DRIVE_ID = "..."
+LIST_ID = "..."
+LINKS_LIST_ID = "..."
+SITE_HOST = "..."
+SITE_PATH = "..."
+CERT_FILE = "/secrets/apuri.crt"
+KEY_FILE = "/secrets/apuri.key"
 ```
+
+`CERT_FILE` ja `KEY_FILE` ovat polkuja bg-kontin sisällä, jossa `./secrets` on mountattu kohtaan `/secrets`.
+
+Sovellus tarvitsee Graphin ja SharePointin `Sites.Selected` (Application) oikeudet, sekä sivustokohtaisen `read`-oikeuden.
+
+#### Listojen sarakkeet
+
+Koodi käyttää listan sarakkeiden sisäisiä nimiä. Näkyviä nimiä voi vaihtaa vapaasti.
+
+| `apuri-data` | Sisäinen nimi |
+|---|---|
+| Workshop | `Title` |
+| Description | `field_1` |
+| Days (Ma–Pe) | `field_2` |
+| Level (1–10, 10 = 2. aste) | `field_3` |
+| Category | `field_4` |
+| Location | `field_5` |
+| Calendar | `field_6` |
+| Kuva | `IMG` |
+| Näytetäänkö (Kyllä/Ei) | `Active` |
+
+`apuri-links`-listassa `Title` on kalenterin nimi täsmälleen samassa muodossa kuin `apuri-data`-listan Calendar-valinnoissa, ja `field_1` (näkyvä nimi "URL") on varauslinkki.
 
 **/caddy/Caddyfile** tiedostossa määritetään Caddyn reverse proxyn asetukset ja myös HTTP -> HTTPS.
 
@@ -147,7 +173,7 @@ sudo docker compose logs -f xxx
 
 #### Caddyn lokitiedot
 
-Caddyn lokitiedot ovat tarkasteltavissa "caddy_logs/access.log" tiedostossa esim. `komentoa sudo tail -f ./caddy_logs/access.log` käyttäen. Tänne oletuskonfiguraatiossa tallentuu vain aikaleima, loggeri ja viesti (kuten "handeled request").
+Caddyn lokitiedot ovat tarkasteltavissa "caddy_logs/access.log" tiedostossa esim. komentoa `sudo tail -f ./caddy_logs/access.log` käyttäen. Tänne oletuskonfiguraatiossa tallentuu vain aikaleima, loggeri ja viesti (kuten "handled request").
 
 Caddyn toiminnan lokitiedostoja voi tarkastella dockerin komennolla `sudo docker logs valinta-caddy -f`.
 
@@ -155,8 +181,8 @@ Caddyn toiminnan lokitiedostoja voi tarkastella dockerin komennolla `sudo docker
 
 - [X] HTTP/2 protokolla
 - [x] preload/preconnect .css ja fonteille (myös BG.webp)
-- [x] Cache-Controll implementaatio kuville yms.
+- [x] Cache-Control implementaatio kuville yms.
 - [x] Kuvat .jpg -> .webp
 - [ ] ~~Vaihto palvelimella renderöidystä html tiedostosta javascriptiin~~
-- [x] Vahdettu HTMX pohjaiseen toteukseen, joka mahdollistaa sivun sisällön vaihtamisen. Eli ei tarvitse ladata koko sivua uudelleen.
-- [ ] Vaihto polling pohjaisesta taustaprorssista webhookkiin
+- [x] Vaihdettu HTMX-pohjaiseen toteutukseen, joka mahdollistaa sivun sisällön vaihtamisen. Eli ei tarvitse ladata koko sivua uudelleen.
+- [ ] Vaihto polling-pohjaisesta taustaprosessista webhookkiin

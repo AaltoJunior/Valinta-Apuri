@@ -3,8 +3,6 @@ pandas==2.3.0
 numpy==2.3.0
 dotenv==0.9.9
 termcolor==3.1.0
-openpyxl==3.1.5
-openpyxl_image_loader==1.0.5
 msal==1.32.3
 requests==2.32.3
 pillow==11.2.1

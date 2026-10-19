@@ -1,7 +1,7 @@
 services:
   redis:
     image: redis:7-alpine
-    container_name: valina-redis
+    container_name: valinta-redis
     restart: unless-stopped
     networks:
       - internal
@@ -57,10 +57,15 @@ services:
       TZ: Europe/Helsinki
       REDIS_HOST: redis
       CLIENT_ID: ${CLIENT_ID}
-      CLIENT_SECRET: ${CLIENT_SECRET}
       TENANT_ID: ${TENANT_ID}
-      DRIVE_ID: ${DRIVE_ID}
+      LIST_ID: ${LIST_ID}
+      LINKS_LIST_ID: ${LINKS_LIST_ID}
+      SITE_HOST: ${SITE_HOST}
+      SITE_PATH: ${SITE_PATH}
+      CERT_FILE: ${CERT_FILE}
+      KEY_FILE: ${KEY_FILE}
     volumes:
+      - ./secrets:/secrets:ro
       - img_data:/app/static/img_cur
     command: python3.12 bg.py
     networks:

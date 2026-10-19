@@ -1,5 +1,6 @@
 .DS_store
 *.env
+*.env*
 *.log
 static/img_tmp/*
 !static/img_tmp/.gitkeep
@@ -12,13 +13,13 @@ __pycache__/
 *.key
 *.crt
 certs/
+secrets/
 *.tar
 *.tar.gz
 *.zip
 *.pkl
 *.xlsx
-dp/*
-dp/d.xlsx
+dp/
 
 caddy/*
 !caddy/Caddyfile.example
