@@ -1,5 +1,6 @@
 .DS_store
 *.env
+*.env*
 *.log
 static/img_tmp/*
 !static/img_tmp/.gitkeep

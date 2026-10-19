@@ -1,7 +1,7 @@
 services:
   redis:
     image: redis:7-alpine
-    container_name: valina-redis
+    container_name: valinta-redis
     restart: unless-stopped
 
 
